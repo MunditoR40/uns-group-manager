@@ -17,4 +17,9 @@ class PracticeGroup extends Model
     {
         return $this->hasMany(Enrollment::class);
     }
+
+    public function getEffectiveCapacityAttribute(): int
+    {
+        return app(\App\Services\ReallocationService::class)->calculateEffectiveCapacity($this);
+    }
 }
