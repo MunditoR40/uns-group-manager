@@ -20,6 +20,6 @@ class PracticeGroup extends Model
 
     public function getEffectiveCapacityAttribute(): int
     {
-        return app(\App\Services\ReallocationService::class)->calculateEffectiveCapacity($this);
+        return (int) ($this->base_capacity ?: 15);
     }
 }
