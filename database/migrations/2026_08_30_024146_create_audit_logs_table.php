@@ -6,28 +6,22 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id();
-            $table->uuid('batch_id')->nullable()->index();
-            $table->foreignId('enrollment_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
-            $table->string('action_type'); 
-            $table->json('previous_state');
-            $table->json('new_state');
-            $table->string('description')->nullable();
+            $table->uuid('batch_id')->index(); // Identificador único por lote de reasignación
+            $table->foreignId('enrollment_id')->constrained('enrollments')->onDelete('cascade');
+            $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null'); // Delegado/Admin que ejecuta
+            $table->string('action_type'); // ej: REALLOCATION, MANUAL_MOVE, ROLLBACK
+            $table->json('previous_state'); // Estado previo en formato JSON
+            $table->json('new_state'); // Estado nuevo en formato JSON
+            $table->text('description')->nullable();
             $table->boolean('is_reverted')->default(false);
             $table->timestamps();
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('audit_logs');
