@@ -1,5 +1,7 @@
 # Guía Paso a Paso para el Equipo de Desarrollo
 ## Sistema de Gestión y Reasignación de Grupos UNS (Laravel 12 / PHP 8.2)
+### Curso de PHP + Laravel — CECOMP UNS (Centro de Cómputo de la Universidad Nacional del Santa)
+**Docente a cargo:** Ing. Borja Whiston | **Tech Lead:** Angel Rojas
 
 ---
 
@@ -29,6 +31,26 @@
 
 ---
 
+## ⚠️ ADVERTENCIA CRÍTICA: Sincronización de Base de Datos para el Equipo
+
+> ### 🛑 ¿Por qué no ves los cursos y alumnos en tu MySQL Workbench automáticamente al hacer git pull?
+> * Git **NO sincroniza los archivos de la base de datos MySQL** de tu computadora porque cada integrante tiene su propio servidor local (`localhost`). Git solo sincroniza el código fuente.
+> * Los datos oficiales fueron codificados en el **Seeder de Laravel** (`database/seeders/AcademicScheduleSeeder.php`).
+> 
+> ### 📋 Comando OBLIGATORIO que debe ejecutar cada integrante en su PC:
+> Cada vez que descargues cambios con `git pull origin develop`, ejecuta en tu terminal:
+> ```bash
+> php artisan migrate:fresh --seed
+> ```
+> **¿Qué hace este comando en tu computadora?**
+> 1. Borra y recrea las 6 tablas limpias en tu base de datos MySQL local (`uns_groups_db`).
+> 2. Carga automáticamente:
+>    * **90 estudiantes reales** con códigos institucionales UNS ordenados alfabéticamente (Promociones 2025 y 2026).
+>    * **6 cursos oficiales del SIIGAA** (Cálculo Integral, Física I, Base de Datos I, Programación I, etc.) con sus docentes y horarios.
+>    * **304 matrículas oficiales**, con excedentes en prácticas y cruces de horario reales para probar sus pantallas y filtros.
+
+---
+
 ## 👥 Asignación Detallada por Integrante
 
 ---
@@ -45,39 +67,37 @@
 
 ### 2. Loeffer
 * **Rol:** Asistente de Datos y Dataset Oficial
-* **Entregables concretos:**
-  1. Crear archivo Excel: `Matriculados.xlsx` siguiendo el formato oficial de la UNS:
-     * Hoja: `TablaDetalle1`
-     * Columnas: `NRO`, `CÓDIGO` (10 dígitos), `APELLIDOS Y NOMBRES`, `FECHA`, `HORA` (escalonada segundo a segundo), `TEORIA` (1), `PRÁCTICA` (A, B, C, D, E), `CONDICIÓN` (1).
-     * Total: ~75 alumnos inventados con nombres peruanos realistas.
-  2. Crear archivo Excel: `CargaHoraria.xlsx` con la distribución de horarios, docentes y laboratorios.
-* **Paso a paso:**
-  * Descargar la plantilla o guiarse de las capturas del SIIGAA compartidas en el grupo.
-  * Llenar los datos asegurándose de que en el grupo D haya 18-19 alumnos para poner a prueba la cola de excedentes.
-  * Entregar los archivos `.xlsx` al Tech Lead para incorporarlos al importador automático del sistema.
+* **Estado:** ✅ **COMPLETADO AL 100%**
+* **Entregables realizados:**
+  * Estructuración del dataset de estudiantes con el formato oficial de código UNS:
+    `0` + `año de ingreso (2025/2026)` + `código de escuela (140)` + `orden alfabético (01 a 45)`.
+  * Generación y curación de 90 alumnos ficticios con nombres peruanos realistas y correos `@uns.edu.pe`.
+  * Implementación del Seeder oficial de la aplicación: [`AcademicScheduleSeeder.php`](file:///d:/Proyectos/uns-group-manager/database/seeders/AcademicScheduleSeeder.php).
+  * Carga de los 6 cursos oficiales del SIIGAA UNS (Ciclo II y Ciclo IV) con docentes, ambientes y 304 matrículas con casos de excedentes y cruces de horario por repitencia.
 
 ---
 
 ### 3. Angel Rojas (Tech Lead)
 * **Rol:** Tech Lead & Algoritmo de Reasignación
 * **Rama:** `feature/reallocation-service`
-* **Archivos a crear/modificar:**
+* **Estado:** ✅ **COMPLETADO AL 100%**
+* **Archivos implementados:**
   * `app/Services/ReallocationService.php`
   * `tests/Feature/ReallocationServiceTest.php`
-* **Paso a paso:**
-  1. **Cálculo de Aforo Flexible (`calculateEffectiveCapacity`):**
-     * Base: 15 alumnos.
-     * Si traen laptop (`has_laptop = true`): amplía aforo hasta 17 (+1 por alumno con laptop).
-     * Si tienen autorización docente (`teacher_authorized = true`): amplía aforo hasta 18.
-  2. **División de Teorías T1 $\rightarrow$ T2 (`splitTheoryGroups`):**
-     * Caso 4 prácticas: P1A y P1B se quedan en T1; P1C $\rightarrow$ P2A y P1D $\rightarrow$ P2B pasan a T2.
-     * Caso 5 prácticas: P1A, P1B y P1C se quedan en T1; P1D $\rightarrow$ P2A y P1E $\rightarrow$ P2B pasan a T2.
-     * Actualiza la teoría de los alumnos y marca estado `'reasignado'`.
-  3. **Manejo de Excedentes y Balanceo FIFO (`getOverflowAndVacancies` y `balanceOverflow`):**
-     * Detectar alumnos que superen el aforo efectivo ordenados por `enrolled_at ASC`.
-     * Reubicarlos en grupos con vacantes disponibles respetando el orden estricto de matrícula.
+* **Lógica implementada:**
+  1. **Condición de activación ($\ge 60$ alumnos matriculados):**
+     * Si hay menos de 60 alumnos, el curso se mantiene con solo Teoría 1.
+     * Con 60 o más alumnos, se habilita y crea la Teoría 2.
+  2. **Partición generalizada truncada de grupos ($\lfloor N / 2 \rfloor$):**
+     * Teoría 1 conserva $(N - \lfloor N / 2 \rfloor)$ prácticas: `P1A, P1B, P1C...`.
+     * Teoría 2 recibe $\lfloor N / 2 \rfloor$ prácticas reiniciando abecedario: `P2A, P2B...`.
+     * Los estudiantes de los grupos migrantes se actualizan a Teoría 2 con estado `'reasignado'` y registro inmutable en `audit_logs` con `batch_id`.
+  3. **Herramientas de apoyo para la gestión manual del Delegado:**
+     * `moveStudentManually(...)`: Reasignación individual de alumnos particulares (cruces de horario, peticiones directas).
+     * `toggleLaptop(...)`: Control manual de alumnos con laptop.
+     * `toggleTeacherAuth(...)`: Control manual de autorizaciones docentes.
   4. **Pruebas Automatizadas:**
-     * Crear el test suite en PHPUnit y asegurar que pase con 100% de éxito.
+     * Suite en PHPUnit con 5 tests y 36 aserciones pasando al 100% (`php artisan test`).
 
 ---
 
