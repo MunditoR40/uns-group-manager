@@ -19,6 +19,9 @@
                 <a href="{{ route('courses.index') }}" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-700 hover:bg-slate-50 rounded-lg transition flex items-center gap-1.5">
                     <i class="ph ph-squares-four text-lg"></i> Cursos
                 </a>
+                <a href="{{ route('dashboard') }}" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-700 hover:bg-slate-50 rounded-lg transition flex items-center gap-1.5">
+                    <i class="ph ph-chart-pie-slice text-lg"></i> Dashboard
+                </a>
                 <a href="{{ route('teachers.index') }}" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-700 hover:bg-slate-50 rounded-lg transition flex items-center gap-1.5">
                     <i class="ph ph-chalkboard-teacher text-lg"></i> Docentes
                 </a>
@@ -50,6 +53,12 @@
     <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 bg-white/95 backdrop-blur px-4 pt-2 pb-4 space-y-1">
         <a href="{{ route('courses.index') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-red-50 hover:text-red-700 transition">
             <i class="ph ph-squares-four text-lg"></i> Cursos
+        </a>
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-red-50 hover:text-red-700 transition">
+            <i class="ph ph-chart-pie-slice text-lg"></i> Dashboard
+        </a>
+        <a href="{{ route('teachers.index') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-red-50 hover:text-red-700 transition">
+            <i class="ph ph-chalkboard-teacher text-lg"></i> Docentes
         </a>
         <a href="{{ route('audit.index') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-red-50 hover:text-red-700 transition">
             <i class="ph ph-clock-counter-clockwise text-lg"></i> Auditoría & Rollback

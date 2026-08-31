@@ -42,6 +42,9 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+    <!-- Chart.js para Visualizaciones Estadísticas -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         [x-cloak] { display: none !important; }
         body:has(.fixed.inset-0:not([style*="display: none"])) nav {

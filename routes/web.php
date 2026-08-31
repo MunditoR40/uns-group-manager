@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\CourseController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\StudentController;
@@ -12,6 +13,9 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return redirect()->route('courses.index');
 });
+
+// Dashboard de Analítica y Estadísticas UNS (Chart.js)
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
 // CRUD y Gestión de Cursos (Entregable ampliado de Jared)
 Route::get('/courses', [CourseController::class, 'index'])->name('courses.index');

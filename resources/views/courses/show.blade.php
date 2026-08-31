@@ -159,6 +159,40 @@
         </div>
     </div>
 
+    <!-- Gráfico Circular de Promociones de este Curso (Promo Principal vs Repitencia/Otras) -->
+    <div class="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+        <div class="max-w-xl">
+            <div class="flex items-center gap-2 mb-1.5">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-purple-50 text-purple-700 border border-purple-200">
+                    Composición del Alumnado
+                </span>
+                <span class="text-xs font-semibold text-slate-400">• {{ $course->cycle }}</span>
+            </div>
+            <h3 class="text-lg font-black text-slate-900 leading-tight">Distribución por Promoción de Ingreso</h3>
+            <p class="text-xs text-slate-500 mt-1">
+                Supervisa si este curso está integrado mayoritariamente por su <strong class="text-slate-800">promoción regular</strong> o si presenta sobrecarga por estudiantes de <strong class="text-slate-800">promociones anteriores (repitencia)</strong>.
+            </p>
+            <div class="mt-4 flex flex-wrap gap-2 text-xs">
+                @foreach($coursePromoLabels as $idx => $label)
+                    @php
+                        $count = $coursePromoData[$idx] ?? 0;
+                        $pct = $totalEnrolled > 0 ? round(($count / $totalEnrolled) * 100, 1) : 0;
+                    @endphp
+                    <div class="px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 flex items-center gap-2 font-bold text-slate-700">
+                        <span class="w-2.5 h-2.5 rounded-full {{ $idx === 0 ? 'bg-purple-600' : 'bg-blue-600' }}"></span>
+                        <span>{{ $label }}:</span>
+                        <span class="text-slate-900 font-black">{{ $count }} alumnos</span>
+                        <span class="text-slate-400 font-normal">({{ $pct }}%)</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        <div class="relative flex items-center justify-center flex-shrink-0" style="width: 220px; height: 220px;">
+            <canvas id="coursePromoChart"></canvas>
+        </div>
+    </div>
+
     <!-- TARJETAS DE AFORO POR GRUPO DE PRÁCTICA -->
     <div>
         <div class="flex justify-between items-center mb-4">
@@ -608,5 +642,45 @@
             sessionStorage.removeItem('courses_scroll_pos_' + window.location.pathname);
         }
     });
+
+    // Inicializar Gráfico Circular de Promociones de este Curso
+    const promoCanvas = document.getElementById('coursePromoChart');
+    if (promoCanvas && typeof Chart !== 'undefined') {
+        new Chart(promoCanvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: @json($coursePromoLabels),
+                datasets: [{
+                    data: @json($coursePromoData),
+                    backgroundColor: [
+                        'rgba(147, 51, 234, 0.85)', // Promo 2025 (Púrpura)
+                        'rgba(37, 99, 235, 0.85)',  // Promo 2026 (Azul regular)
+                        'rgba(13, 148, 136, 0.85)', // Teal
+                        'rgba(245, 158, 11, 0.85)'  // Amber
+                    ],
+                    borderColor: '#ffffff',
+                    borderWidth: 3,
+                    hoverOffset: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const val = context.parsed || 0;
+                                const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+                                return ` ${context.label}: ${val} matriculados (${pct}%)`;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
 </script>
 @endpush

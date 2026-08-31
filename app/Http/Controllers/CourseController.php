@@ -190,6 +190,17 @@ class CourseController extends Controller
         $totalAuthorized = $course->enrollments()->where('teacher_authorized', true)->count();
         $totalReassigned = $course->enrollments()->where('status', 'reasignado')->count();
 
+        // Gráfico Circular de Promociones de este Curso
+        $allCourseEnrollments = $course->enrollments()->with('user')->get();
+        $coursePromos = [];
+        foreach ($allCourseEnrollments as $ce) {
+            $promo = DashboardController::extractPromo($ce->user->code ?? null);
+            $coursePromos[$promo] = ($coursePromos[$promo] ?? 0) + 1;
+        }
+        ksort($coursePromos);
+        $coursePromoLabels = array_keys($coursePromos);
+        $coursePromoData = array_values($coursePromos);
+
         // Cursos disponibles para el dropdown de navegación rápida
         $allCourses = Course::select('id', 'code_course', 'name')->get();
 
@@ -203,7 +214,9 @@ class CourseController extends Controller
             'totalAuthorized',
             'totalReassigned',
             'allCourses',
-            'teachers'
+            'teachers',
+            'coursePromoLabels',
+            'coursePromoData'
         ));
     }
 
