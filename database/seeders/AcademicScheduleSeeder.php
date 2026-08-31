@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\Course;
 use App\Models\Enrollment;
 use App\Models\PracticeGroup;
+use App\Models\Teacher;
 use App\Models\TheoryGroup;
 use App\Models\User;
 use Carbon\Carbon;
@@ -27,6 +28,7 @@ class AcademicScheduleSeeder extends Seeder
         PracticeGroup::truncate();
         TheoryGroup::truncate();
         Course::truncate();
+        Teacher::truncate();
         User::truncate();
         DB::statement('SET FOREIGN_KEY_CHECKS=1;');
 
@@ -181,6 +183,58 @@ class AcademicScheduleSeeder extends Seeder
         }
 
         // =========================================================================
+        // 3.5 PLANA DOCENTE OFICIAL UNS (Docentes de Sistemas, Matemática y Física)
+        // Regla UNS: 1 teoría por docente en cada ciclo académico
+        // =========================================================================
+        $teacherCalculo = Teacher::create([
+            'name' => 'LIC. MAT. PEREZ GUZMAN SEGUNDO',
+            'code' => 'DOC-101',
+            'email' => 'sperez@uns.edu.pe',
+            'department' => 'DAMA - Departamento de Matemática',
+            'condition' => 'Nombrado Principal',
+        ]);
+
+        $teacherFisica = Teacher::create([
+            'name' => 'LIC. FIS. QUEVEDO HUERTA MARIO',
+            'code' => 'DOC-102',
+            'email' => 'mquevedo@uns.edu.pe',
+            'department' => 'DAEF - Departamento de Física',
+            'condition' => 'Nombrado Asociado',
+        ]);
+
+        $teacherFundProg = Teacher::create([
+            'name' => 'ING. BORJA ROSALES WHISTON',
+            'code' => 'DOC-103',
+            'email' => 'wborja@uns.edu.pe',
+            'department' => 'DAISI - Ingeniería de Sistemas e Informática',
+            'condition' => 'Nombrado Principal',
+        ]);
+
+        $teacherProg1 = Teacher::create([
+            'name' => 'ING. MELENDEZ CALVO LUIS',
+            'code' => 'DOC-104',
+            'email' => 'lmelendez@uns.edu.pe',
+            'department' => 'DAISI - Ingeniería de Sistemas e Informática',
+            'condition' => 'Nombrado Principal',
+        ]);
+
+        $teacherBd1 = Teacher::create([
+            'name' => 'ING. ROJAS LOZANO CESAR',
+            'code' => 'DOC-105',
+            'email' => 'crojas@uns.edu.pe',
+            'department' => 'DAISI - Ingeniería de Sistemas e Informática',
+            'condition' => 'Nombrado Asociado',
+        ]);
+
+        $teacherReq = Teacher::create([
+            'name' => 'DRA. VEGA VELASQUEZ CARMEN',
+            'code' => 'DOC-106',
+            'email' => 'cvega@uns.edu.pe',
+            'department' => 'DAISI - Ingeniería de Sistemas e Informática',
+            'condition' => 'Nombrada Principal',
+        ]);
+
+        // =========================================================================
         // 4. CURSOS OFICIALES DEL SEGUNDO CICLO (Semestre 2026-02)
         // Tomados de la captura oficial del SIIGAA UNS
         // =========================================================================
@@ -193,7 +247,11 @@ class AcademicScheduleSeeder extends Seeder
             'semester' => '2026-02',
             'cycle' => 'II Ciclo',
         ]);
-        $t1Calculo = TheoryGroup::create(['course_id' => $cursoCalculo->id, 'name' => 'Teoría 1']);
+        $t1Calculo = TheoryGroup::create([
+            'course_id' => $cursoCalculo->id, 
+            'name' => 'Teoría 1',
+            'teacher_id' => $teacherCalculo->id,
+        ]);
         
         $p1aCalculo = PracticeGroup::create([
             'theory_group_id' => $t1Calculo->id,
@@ -302,7 +360,11 @@ class AcademicScheduleSeeder extends Seeder
             'semester' => '2026-02',
             'cycle' => 'II Ciclo',
         ]);
-        $t1Fisica = TheoryGroup::create(['course_id' => $cursoFisica->id, 'name' => 'Teoría 1']);
+        $t1Fisica = TheoryGroup::create([
+            'course_id' => $cursoFisica->id, 
+            'name' => 'Teoría 1',
+            'teacher_id' => $teacherFisica->id,
+        ]);
         $p1aFisica = PracticeGroup::create(['theory_group_id' => $t1Fisica->id, 'code' => 'P1A', 'base_capacity' => 15, 'schedule' => 'Viernes 07:00-09:00 | LAB FISICA']);
         $p1bFisica = PracticeGroup::create(['theory_group_id' => $t1Fisica->id, 'code' => 'P1B', 'base_capacity' => 15, 'schedule' => 'Viernes 09:00-11:00 | LAB FISICA']);
         $p1cFisica = PracticeGroup::create(['theory_group_id' => $t1Fisica->id, 'code' => 'P1C', 'base_capacity' => 15, 'schedule' => 'Viernes 11:00-13:00 | LAB FISICA']);
@@ -325,7 +387,11 @@ class AcademicScheduleSeeder extends Seeder
             'semester' => '2026-02',
             'cycle' => 'II Ciclo',
         ]);
-        $t1FundProg = TheoryGroup::create(['course_id' => $cursoFundProg->id, 'name' => 'Teoría 1']);
+        $t1FundProg = TheoryGroup::create([
+            'course_id' => $cursoFundProg->id, 
+            'name' => 'Teoría 1',
+            'teacher_id' => $teacherFundProg->id,
+        ]);
         $p1aFund = PracticeGroup::create(['theory_group_id' => $t1FundProg->id, 'code' => 'P1A', 'base_capacity' => 15, 'schedule' => 'Miércoles 07:00-09:00 | LAB SIST 01']);
         $p1bFund = PracticeGroup::create(['theory_group_id' => $t1FundProg->id, 'code' => 'P1B', 'base_capacity' => 15, 'schedule' => 'Miércoles 09:00-11:00 | LAB SIST 01']);
         $p1cFund = PracticeGroup::create(['theory_group_id' => $t1FundProg->id, 'code' => 'P1C', 'base_capacity' => 15, 'schedule' => 'Jueves 07:00-09:00 | LAB SIST 01']);
@@ -363,7 +429,11 @@ class AcademicScheduleSeeder extends Seeder
             'semester' => '2026-02',
             'cycle' => 'IV Ciclo',
         ]);
-        $t1Prog1 = TheoryGroup::create(['course_id' => $cursoProg1->id, 'name' => 'Teoría 1']);
+        $t1Prog1 = TheoryGroup::create([
+            'course_id' => $cursoProg1->id, 
+            'name' => 'Teoría 1',
+            'teacher_id' => $teacherProg1->id,
+        ]);
         $p1aProg1 = PracticeGroup::create(['theory_group_id' => $t1Prog1->id, 'code' => 'P1A', 'base_capacity' => 15, 'schedule' => 'Lunes 07:00-11:00 | LAB SIST AD-02']);
         $p1bProg1 = PracticeGroup::create(['theory_group_id' => $t1Prog1->id, 'code' => 'P1B', 'base_capacity' => 15, 'schedule' => 'Viernes 09:00-11:00 | LAB SIST AD-02']);
         $p1cProg1 = PracticeGroup::create(['theory_group_id' => $t1Prog1->id, 'code' => 'P1C', 'base_capacity' => 15, 'schedule' => 'Martes 07:00-11:00 | LAB SIST AD-02']);
@@ -386,7 +456,11 @@ class AcademicScheduleSeeder extends Seeder
             'semester' => '2026-02',
             'cycle' => 'IV Ciclo',
         ]);
-        $t1Bd1 = TheoryGroup::create(['course_id' => $cursoBd1->id, 'name' => 'Teoría 1']);
+        $t1Bd1 = TheoryGroup::create([
+            'course_id' => $cursoBd1->id, 
+            'name' => 'Teoría 1',
+            'teacher_id' => $teacherBd1->id,
+        ]);
         $p1aBd1 = PracticeGroup::create(['theory_group_id' => $t1Bd1->id, 'code' => 'P1A', 'base_capacity' => 15, 'schedule' => 'Miércoles 07:00-09:00 | LAB SIST AD-03']);
         $p1bBd1 = PracticeGroup::create(['theory_group_id' => $t1Bd1->id, 'code' => 'P1B', 'base_capacity' => 15, 'schedule' => 'Miércoles 09:00-11:00 | LAB SIST AD-03']);
         $p1cBd1 = PracticeGroup::create(['theory_group_id' => $t1Bd1->id, 'code' => 'P1C', 'base_capacity' => 15, 'schedule' => 'Jueves 11:00-13:00 | LAB SIST AD-03']);
@@ -409,7 +483,11 @@ class AcademicScheduleSeeder extends Seeder
             'semester' => '2026-02',
             'cycle' => 'IV Ciclo',
         ]);
-        $t1Req = TheoryGroup::create(['course_id' => $cursoReq->id, 'name' => 'Teoría 1']);
+        $t1Req = TheoryGroup::create([
+            'course_id' => $cursoReq->id, 
+            'name' => 'Teoría 1',
+            'teacher_id' => $teacherReq->id,
+        ]);
         $p1aReq = PracticeGroup::create(['theory_group_id' => $t1Req->id, 'code' => 'P1A', 'base_capacity' => 15, 'schedule' => 'Martes 11:00-13:00 | AULA 201']);
         $p1bReq = PracticeGroup::create(['theory_group_id' => $t1Req->id, 'code' => 'P1B', 'base_capacity' => 15, 'schedule' => 'Jueves 07:00-09:00 | AULA 201']);
         $p1cReq = PracticeGroup::create(['theory_group_id' => $t1Req->id, 'code' => 'P1C', 'base_capacity' => 15, 'schedule' => 'Jueves 09:00-11:00 | AULA 201']);

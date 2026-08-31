@@ -14,10 +14,13 @@
                 <span class="text-slate-600 font-semibold">{{ $course->code_course }}</span>
             </nav>
             <h1 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">{{ $course->name }}</h1>
-            <p class="text-xs sm:text-sm text-slate-500 mt-1">
-                Código: <span class="font-bold text-slate-700">{{ $course->code_course }}</span> • 
-                Ciclo: <span class="font-bold text-slate-700">{{ $course->cycle ?? 'II Ciclo' }}</span> • 
-                Semestre: <span class="font-bold text-slate-700">{{ $course->semester }}</span>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span>Código: <strong class="text-slate-700">{{ $course->code_course }}</strong></span> • 
+                <span>Ciclo: <strong class="text-slate-700">{{ $course->cycle ?? 'II Ciclo' }}</strong></span> • 
+                <span>Semestre: <strong class="text-slate-700">{{ $course->semester }}</strong></span>
+                @foreach($course->theoryGroups as $tg)
+                    • <span>{{ $tg->name }}: <strong class="text-slate-800">{{ $tg->teacher->name ?? 'Docente por asignar' }}</strong></span>
+                @endforeach
             </p>
         </div>
 
@@ -34,13 +37,29 @@
                 </select>
             </div>
 
-            @if(Route::has('exports.enrollments.excel'))
-                <a href="{{ route('exports.enrollments.excel') }}" 
-                   class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition">
+            <!-- Dropdown Exportaciones Excel de este Curso (Consolidado o por Teoría) -->
+            <div class="relative" x-data="{ openExcelMenu: false }">
+                <button @click="openExcelMenu = !openExcelMenu" type="button" 
+                        class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl shadow-sm transition">
                     <i class="ph ph-file-xls text-base"></i>
                     <span>Exportar Excel</span>
-                </a>
-            @endif
+                    <i class="ph ph-caret-down text-xs"></i>
+                </button>
+                <div x-show="openExcelMenu" @click.away="openExcelMenu = false" 
+                     class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 text-xs font-semibold" style="display: none;" x-cloak>
+                    <a href="{{ route('courses.excel', $course) }}" class="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition">
+                        <i class="ph ph-file-xls text-emerald-600 text-base"></i>
+                        <span>Consolidado del Curso</span>
+                    </a>
+                    <div class="border-t border-slate-100 my-1"></div>
+                    @foreach($course->theoryGroups as $tg)
+                        <a href="{{ route('courses.excel', [$course, 'theory_group_id' => $tg->id]) }}" class="flex items-center gap-2 px-4 py-2 text-slate-700 hover:bg-emerald-50 hover:text-emerald-800 transition">
+                            <i class="ph ph-chalkboard-teacher text-purple-600 text-base"></i>
+                            <span>Padrón {{ $tg->name }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
         </div>
     </div>
 

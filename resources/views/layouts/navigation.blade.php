@@ -1,4 +1,4 @@
-﻿<nav class="bg-white border-b border-slate-200 sticky top-0 z-50 backdrop-blur-md bg-white/95 shadow-sm">
+<nav class="bg-white border-b border-slate-200 sticky top-0 z-50 backdrop-blur-md bg-white/95 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <!-- Logo & Brand -->
@@ -19,10 +19,13 @@
                 <a href="{{ route('courses.index') }}" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-700 hover:bg-slate-50 rounded-lg transition flex items-center gap-1.5">
                     <i class="ph ph-squares-four text-lg"></i> Cursos
                 </a>
+                <a href="{{ route('teachers.index') }}" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-700 hover:bg-slate-50 rounded-lg transition flex items-center gap-1.5">
+                    <i class="ph ph-chalkboard-teacher text-lg"></i> Docentes
+                </a>
                 <a href="{{ route('audit.index') }}" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-700 hover:bg-slate-50 rounded-lg transition flex items-center gap-1.5">
                     <i class="ph ph-clock-counter-clockwise text-lg"></i> Auditoría & Rollback
                 </a>
-                <a href="{{ route('exports.enrollments.excel') }}" class="px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 rounded-lg transition flex items-center gap-1.5 border border-emerald-200">
+                <a href="{{ route('exports.enrollments.excel') }}" title="Reporte consolidado del sistema completo (Delegado General)" class="px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 rounded-lg transition flex items-center gap-1.5 border border-emerald-200">
                     <i class="ph ph-file-xls text-lg"></i> Excel General
                 </a>
                 
