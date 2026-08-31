@@ -7,7 +7,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware(['auth'])->group(function () {
-    Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
-    Route::post('/audit/rollback/{batchId}', [AuditController::class, 'rollback'])->name('audit.rollback');
-});
+Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
+Route::post('/audit/rollback/{batchId}', [AuditController::class, 'rollback'])->name('audit.rollback');
+Route::post('/audit/single/{auditLog}/rollback', [AuditController::class, 'rollbackSingle'])->name('audit.rollback-single');
+

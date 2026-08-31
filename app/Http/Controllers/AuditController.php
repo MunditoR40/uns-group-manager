@@ -36,4 +36,16 @@ class AuditController extends Controller
 
         return redirect()->back()->with('error', 'No se pudo revertir el lote o ya fue revertido previamente.');
     }
+
+    // Ejecuta la reversión de una acción individual
+    public function rollbackSingle(Request $request, AuditLog $auditLog)
+    {
+        $success = $this->auditService->rollbackSingle($auditLog);
+
+        if ($success) {
+            return redirect()->back()->with('success', 'Acción de auditoría revertida exitosamente.');
+        }
+
+        return redirect()->back()->with('error', 'No se pudo revertir la acción o ya fue revertida previamente.');
+    }
 }
