@@ -310,4 +310,13 @@ class CourseController extends Controller
 
         return redirect()->back()->with('success', $result['message']);
     }
+
+    /**
+     * Endpoint API para el Simulador Previo de División (Dry Run / Modo Preview)
+     */
+    public function simulateSplit(Course $course, ReallocationService $reallocationService)
+    {
+        $simulation = $reallocationService->simulateSplit($course);
+        return response()->json($simulation);
+    }
 }

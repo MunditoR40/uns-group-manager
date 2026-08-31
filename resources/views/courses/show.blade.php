@@ -3,7 +3,31 @@
 @section('title', $course->name)
 
 @section('content')
-<div class="space-y-8" x-data="{ modalDivision: false, modalReasignar: false, selectedEnrollment: null, studentName: '', currentGroup: '' }">
+<div class="space-y-8" x-data="{ 
+    modalDivision: false, 
+    modalReasignar: false, 
+    selectedEnrollment: null, 
+    studentName: '', 
+    currentGroup: '',
+    loadingSim: false,
+    simData: null,
+    showStudentList: false,
+    loadSimulation() {
+        this.loadingSim = true;
+        this.simData = null;
+        this.showStudentList = false;
+        fetch('{{ route('courses.simulate-split', $course) }}')
+            .then(res => res.json())
+            .then(data => {
+                this.simData = data;
+                this.loadingSim = false;
+            })
+            .catch(err => {
+                console.error(err);
+                this.loadingSim = false;
+            });
+    }
+}">
 
     <!-- Navegación Superior y Selector Rápido de Curso -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -88,9 +112,10 @@
                 </div>
             </div>
             @if($isSplittable)
-                <button @click="modalDivision = true" 
-                        class="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-xl shadow-sm transition whitespace-nowrap">
-                    Reorganizar Teorías (T1 → T2)
+                <button @click="modalDivision = true; loadSimulation();" 
+                        class="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-xl shadow-sm transition whitespace-nowrap flex items-center gap-1.5">
+                    <i class="ph ph-sliders text-base"></i>
+                    <span>Simular y Reorganizar (T1 → T2)</span>
                 </button>
             @endif
         </div>
@@ -108,9 +133,10 @@
                 </div>
             </div>
             @if($isSplittable)
-                <button @click="modalDivision = true" 
-                        class="px-4 py-2 bg-red-800 hover:bg-red-900 text-white text-xs font-bold rounded-xl shadow-sm transition whitespace-nowrap">
-                    Habilitar Teoría 2 (≥60 Alumnos)
+                <button @click="modalDivision = true; loadSimulation();" 
+                        class="px-4 py-2 bg-red-800 hover:bg-red-900 text-white text-xs font-bold rounded-xl shadow-sm transition whitespace-nowrap flex items-center gap-1.5">
+                    <i class="ph ph-sliders text-base"></i>
+                    <span>Simular y Habilitar Teoría 2</span>
                 </button>
             @endif
         </div>
@@ -473,41 +499,151 @@
         @endif
     </div>
 
-    <!-- MODAL 1: Confirmación de Reorganización y División T1 -> T2 -->
+    <!-- MODAL 1: Simulador Previo y Confirmación de Reorganización y División T1 -> T2 -->
     <template x-teleport="body">
         <div x-show="modalDivision" 
              x-cloak
              class="fixed inset-0 z-[9999] overflow-y-auto bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4"
              style="display: none;">
-            <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-5" @click.away="modalDivision = false">
-                <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center text-2xl font-bold">
-                        <i class="ph ph-git-fork"></i>
+            <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 sm:p-8 space-y-5" @click.away="modalDivision = false">
+                <!-- Header del Modal -->
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center text-2xl font-bold">
+                            <i class="ph ph-sliders"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h3 class="text-lg font-black text-slate-900">Simulador Previo de División</h3>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-purple-100 text-purple-800">Modo Preview</span>
+                            </div>
+                            <p class="text-xs text-slate-500">Reglamento Académico Oficial UNS • Partición truncada ⌊N/2⌋</p>
+                        </div>
                     </div>
-                    <div>
-                        <h3 class="text-lg font-black text-slate-900">Reorganización y División de Teorías</h3>
-                        <p class="text-xs text-slate-500">Reglamento Académico Oficial UNS (≥ 60 alumnos)</p>
-                    </div>
+                    <button @click="modalDivision = false" type="button" class="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition">
+                        <i class="ph ph-x text-lg"></i>
+                    </button>
                 </div>
 
-                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 space-y-2">
-                    <p><strong>Curso:</strong> {{ $course->name }} ({{ $course->code_course }})</p>
-                    <p><strong>Matriculados actuales:</strong> {{ $totalEnrolled }} estudiantes.</p>
-                    <p><strong>Regla de partición truncada:</strong> Se conservará (N - ⌊N/2⌋) grupos en Teoría 1 y se moverá ⌊N/2⌋ grupos a la nueva <strong>Teoría 2</strong> reiniciando correlativo en P2A.</p>
-                    <p class="text-red-700 font-semibold">Todos los movimientos se registrarán en la bitácora inmutable con Batch ID para posibilidad de Rollback.</p>
+                <!-- Estado de Carga -->
+                <div x-show="loadingSim" class="py-12 flex flex-col items-center justify-center gap-3 text-slate-500">
+                    <div class="w-8 h-8 border-4 border-red-700 border-t-transparent rounded-full animate-spin"></div>
+                    <span class="text-xs font-semibold">Calculando simulación matemática y balanceo de cupos...</span>
                 </div>
 
-                <form method="POST" action="{{ route('courses.reallocate', $course) }}">
-                    @csrf
-                    <div class="flex gap-3 justify-end pt-2">
-                        <button type="button" @click="modalDivision = false" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
-                            Cancelar
-                        </button>
-                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm transition">
-                            Confirmar y Ejecutar División
-                        </button>
-                    </div>
-                </form>
+                <!-- Contenido de la Simulación -->
+                <div x-show="!loadingSim && simData" class="space-y-4">
+                    <!-- Banner de Validación si no puede dividir -->
+                    <template x-if="simData && !simData.can_split">
+                        <div class="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-medium flex items-center gap-2">
+                            <i class="ph ph-warning-circle text-lg text-amber-600"></i>
+                            <span x-text="simData.message"></span>
+                        </div>
+                    </template>
+
+                    <!-- Simulación Exitosa -->
+                    <template x-if="simData && simData.can_split">
+                        <div class="space-y-4">
+                            <!-- Metadatos de la Simulación -->
+                            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-700 space-y-1.5">
+                                <div class="flex justify-between items-center">
+                                    <span><strong>Asignatura:</strong> {{ $course->name }} ({{ $course->code_course }})</span>
+                                    <span class="font-bold text-red-700"><span x-text="simData.total_enrolled"></span> Alumnos Matriculados</span>
+                                </div>
+                                <p class="text-slate-500">
+                                    De los <strong class="text-slate-800"><span x-text="simData.total_groups"></span> grupos de práctica actuales</strong>, se conservarán <strong class="text-slate-800"><span x-text="simData.stay_count"></span></strong> en Teoría 1 y se transferirán <strong class="text-slate-800"><span x-text="simData.migrating_count"></span></strong> a la nueva Teoría 2.
+                                </p>
+                            </div>
+
+                            <!-- Comparativa Visual de Teorías T1 vs T2 -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <!-- Columna Teoría 1 -->
+                                <div class="p-4 rounded-2xl bg-blue-50/70 border border-blue-200">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-blue-900 flex items-center gap-1.5">
+                                            <i class="ph ph-chalkboard-teacher"></i> Teoría 1 (Permanecen)
+                                        </h4>
+                                        <span class="text-xs font-black text-blue-800"><span x-text="simData.t1_students_total"></span> alumnos</span>
+                                    </div>
+                                    <div class="space-y-1.5 mt-3">
+                                        <template x-for="g in simData.t1_preview" :key="g.new_code">
+                                            <div class="flex justify-between items-center text-xs px-2.5 py-1.5 rounded-lg bg-white border border-blue-100 font-semibold text-slate-700">
+                                                <span class="font-extrabold text-blue-700" x-text="g.new_code"></span>
+                                                <span class="text-slate-500"><span x-text="g.students_count"></span> estudiantes</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Columna Teoría 2 -->
+                                <div class="p-4 rounded-2xl bg-purple-50/70 border border-purple-200">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h4 class="text-xs font-extrabold uppercase tracking-wider text-purple-900 flex items-center gap-1.5">
+                                            <i class="ph ph-sparkle"></i> Nueva Teoría 2 (Migran)
+                                        </h4>
+                                        <span class="text-xs font-black text-purple-800"><span x-text="simData.t2_students_total"></span> alumnos</span>
+                                    </div>
+                                    <div class="space-y-1.5 mt-3">
+                                        <template x-for="g in simData.t2_preview" :key="g.new_code">
+                                            <div class="flex justify-between items-center text-xs px-2.5 py-1.5 rounded-lg bg-white border border-purple-100 font-semibold text-slate-700">
+                                                <div>
+                                                    <span class="font-extrabold text-purple-700" x-text="g.new_code"></span>
+                                                    <span class="text-[10px] text-slate-400 font-normal">(antes <span x-text="g.current_code"></span>)</span>
+                                                </div>
+                                                <span class="text-slate-500"><span x-text="g.students_count"></span> estudiantes</span>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Acordeón para inspeccionar el padrón de alumnos migrantes -->
+                            <div class="border border-slate-200 rounded-2xl overflow-hidden">
+                                <button type="button" 
+                                        @click="showStudentList = !showStudentList"
+                                        class="w-full px-4 py-2.5 bg-slate-50 hover:bg-slate-100 transition flex items-center justify-between text-xs font-bold text-slate-700">
+                                    <span class="flex items-center gap-2">
+                                        <i class="ph ph-address-book text-base text-slate-500"></i>
+                                        <span>Inspeccionar padrón nominal de los <span x-text="simData.migrating_students ? simData.migrating_students.length : 0"></span> alumnos a transferir</span>
+                                    </span>
+                                    <i class="ph" :class="showStudentList ? 'ph-caret-up' : 'ph-caret-down'"></i>
+                                </button>
+
+                                <div x-show="showStudentList" class="p-3 bg-white max-h-48 overflow-y-auto divide-y divide-slate-100 text-xs">
+                                    <template x-for="s in simData.migrating_students" :key="s.code">
+                                        <div class="py-2 flex items-center justify-between gap-2">
+                                            <div>
+                                                <div class="font-bold text-slate-900" x-text="s.name"></div>
+                                                <div class="text-[11px] text-slate-400 font-mono" x-text="s.code"></div>
+                                            </div>
+                                            <div class="flex items-center gap-2">
+                                                <span class="px-2 py-0.5 rounded bg-slate-100 text-[10px] font-bold text-slate-600" x-text="s.old_group + ' → ' + s.new_group"></span>
+                                                <span x-show="s.has_laptop" class="text-emerald-600 text-xs" title="Tiene Laptop"><i class="ph ph-laptop"></i></span>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <p class="text-[11px] text-slate-400 italic">
+                                🛡️ Esta simulación es meramente visual y no ha modificado la base de datos. Al pulsar el botón de confirmación, se ejecutará la transacción atómica y se generará un Batch ID auditable para posibilitar Rollback.
+                            </p>
+                        </div>
+                    </template>
+
+                    <form method="POST" action="{{ route('courses.reallocate', $course) }}" x-show="simData && simData.can_split">
+                        @csrf
+                        <div class="flex gap-3 justify-end pt-2 border-t border-slate-100">
+                            <button type="button" @click="modalDivision = false" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+                                Cancelar
+                            </button>
+                            <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm transition flex items-center gap-1.5">
+                                <i class="ph ph-check-circle text-base"></i>
+                                <span>Confirmar y Aplicar División Oficial</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </template>

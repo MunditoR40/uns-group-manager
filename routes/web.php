@@ -24,6 +24,7 @@ Route::get('/courses/{course}', [CourseController::class, 'show'])->name('course
 Route::put('/courses/{course}', [CourseController::class, 'update'])->name('courses.update');
 Route::delete('/courses/{course}', [CourseController::class, 'destroy'])->name('courses.destroy');
 Route::post('/courses/{course}/reallocate', [CourseController::class, 'reallocate'])->name('courses.reallocate');
+Route::get('/courses/{course}/simulate-split', [CourseController::class, 'simulateSplit'])->name('courses.simulate-split');
 
 // CRUD y Gestión de la Plana Docente UNS (Con Regla UNS de Teorías)
 Route::get('/teachers', [TeacherController::class, 'index'])->name('teachers.index');

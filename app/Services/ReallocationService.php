@@ -250,4 +250,122 @@ class ReallocationService
     {
         return $this->splitTheoryGroups($course, $executor);
     }
+
+    /**
+     * Simulador Previo de División (Dry Run / Modo Preview)
+     * Calcula la partición matemática truncada y el padrón de alumnos migrantes sin persistir cambios en la BD.
+     */
+    public function simulateSplit(Course $course): array
+    {
+        $totalEnrolled = $course->enrollments()->count();
+        $theoriesCount = $course->theoryGroups()->count();
+
+        if ($totalEnrolled < 60) {
+            return [
+                'can_split' => false,
+                'message' => "No cumple condición: Se requieren al menos 60 alumnos matriculados (actualmente hay {$totalEnrolled}).",
+                'total_enrolled' => $totalEnrolled,
+                'theories_count' => $theoriesCount,
+            ];
+        }
+
+        if ($theoriesCount >= 2) {
+            return [
+                'can_split' => false,
+                'message' => "El curso ya cuenta con {$theoriesCount} teorías abiertas (Teoría 1 y Teoría 2 ya están operativas).",
+                'total_enrolled' => $totalEnrolled,
+                'theories_count' => $theoriesCount,
+            ];
+        }
+
+        $theory1 = $course->theoryGroups()->where('name', 'like', '%Teoría 1%')->first()
+            ?? $course->theoryGroups()->first();
+
+        if (!$theory1) {
+            return [
+                'can_split' => false,
+                'message' => "No se encontró grupo de Teoría 1 en esta asignatura.",
+                'total_enrolled' => $totalEnrolled,
+                'theories_count' => $theoriesCount,
+            ];
+        }
+
+        $practiceGroups = PracticeGroup::where('theory_group_id', $theory1->id)
+            ->with(['enrollments.user'])
+            ->orderBy('code')
+            ->get();
+
+        $totalGroups = $practiceGroups->count();
+        if ($totalGroups < 2) {
+            return [
+                'can_split' => false,
+                'message' => "Se requieren al menos 2 grupos de práctica en Teoría 1 para realizar la partición.",
+                'total_enrolled' => $totalEnrolled,
+                'theories_count' => $theoriesCount,
+            ];
+        }
+
+        $migratingCount = (int) floor($totalGroups / 2);
+        $stayCount = $totalGroups - $migratingCount;
+
+        $stayingGroups = $practiceGroups->slice(0, $stayCount)->values();
+        $migratingGroups = $practiceGroups->slice($stayCount)->values();
+
+        $t1Preview = [];
+        $t1StudentsTotal = 0;
+        foreach ($stayingGroups as $i => $group) {
+            $newCode = 'P1' . chr(65 + $i);
+            $count = $group->enrollments->count();
+            $t1StudentsTotal += $count;
+            $t1Preview[] = [
+                'current_code' => $group->code,
+                'new_code' => $newCode,
+                'students_count' => $count,
+            ];
+        }
+
+        $t2Preview = [];
+        $t2StudentsTotal = 0;
+        $migratingStudentsList = [];
+        foreach ($migratingGroups as $i => $group) {
+            $newCode = 'P2' . chr(65 + $i);
+            $count = $group->enrollments->count();
+            $t2StudentsTotal += $count;
+
+            $studentsInGroup = [];
+            foreach ($group->enrollments as $enr) {
+                $user = $enr->user;
+                $studentData = [
+                    'name' => $user->name ?? 'Sin nombre',
+                    'code' => $user->code ?? 'Sin código',
+                    'has_laptop' => (bool)$enr->has_laptop,
+                    'old_group' => $group->code,
+                    'new_group' => $newCode,
+                ];
+                $studentsInGroup[] = $studentData;
+                $migratingStudentsList[] = $studentData;
+            }
+
+            $t2Preview[] = [
+                'current_code' => $group->code,
+                'new_code' => $newCode,
+                'students_count' => $count,
+                'students' => $studentsInGroup,
+            ];
+        }
+
+        return [
+            'can_split' => true,
+            'message' => "Simulación completada con éxito.",
+            'total_enrolled' => $totalEnrolled,
+            'total_groups' => $totalGroups,
+            'stay_count' => $stayCount,
+            'migrating_count' => $migratingCount,
+            't1_preview' => $t1Preview,
+            't1_students_total' => $t1StudentsTotal,
+            't2_preview' => $t2Preview,
+            't2_students_total' => $t2StudentsTotal,
+            'migrating_students' => $migratingStudentsList,
+        ];
+    }
 }
