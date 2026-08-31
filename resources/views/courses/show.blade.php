@@ -1,68 +1,203 @@
-@extends('layouts.app')
+﻿@extends('layouts.app')
+
+@section('title', $course->name)
 
 @section('content')
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    
-    <!-- Cabecera del Curso -->
-    <div class="mb-8 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+<div class="space-y-8" x-data="{ modalDivision: false, modalReasignar: false, selectedEnrollment: null, studentName: '', currentGroup: '' }">
+
+    <!-- Navegación Superior y Selector Rápido de Curso -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-bold text-gray-900">{{ $course->name }}</h1>
-            <p class="text-sm text-gray-500">Código: <span class="font-semibold text-gray-700">{{ $course->code_course }}</span> | Semestre: <span class="font-semibold text-gray-700">{{ $course->semester }}</span></p>
+            <nav class="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                <a href="{{ route('courses.index') }}" class="hover:text-red-700 transition">Cursos</a>
+                <span>/</span>
+                <span class="text-slate-600 font-semibold">{{ $course->code_course }}</span>
+            </nav>
+            <h1 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">{{ $course->name }}</h1>
+            <p class="text-xs sm:text-sm text-slate-500 mt-1">
+                Código: <span class="font-bold text-slate-700">{{ $course->code_course }}</span> • 
+                Semestre: <span class="font-bold text-slate-700">{{ $course->semester }}</span>
+            </p>
         </div>
+
         <div class="flex items-center gap-3">
+            <div class="relative">
+                <select onchange="window.location.href='/courses/' + this.value" 
+                        class="text-xs bg-white border border-slate-200 rounded-xl px-3 py-2 text-slate-700 font-semibold shadow-sm focus:outline-none focus:ring-2 focus:ring-red-600">
+                    <option value="">Cambiar asignatura...</option>
+                    @foreach($allCourses as $ac)
+                        <option value="{{ $ac->id }}" {{ $ac->id === $course->id ? 'selected' : '' }}>
+                            {{ $ac->code_course }} - {{ $ac->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
             @if(Route::has('exports.enrollments.excel'))
                 <a href="{{ route('exports.enrollments.excel') }}" 
-                   class="inline-flex items-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium rounded-md shadow-sm transition">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    Exportar Todo (Excel)
+                   class="inline-flex items-center gap-1.5 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl shadow-sm transition">
+                    <i class="ph ph-file-xls text-base"></i>
+                    <span>Exportar Excel</span>
                 </a>
             @endif
         </div>
     </div>
 
-    <!-- TARJETAS DE PROGRESO DE AFORO (Aforo Actual vs Aforo Efectivo) -->
-    <div class="mb-8">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Aforo de Grupos de Práctica (Actual vs Base)</h2>
+    <!-- Banner Informativo de Aforos / Alerta de Sobrecupo -->
+    @php
+        $gruposSobrecupo = $practiceGroups->filter(function($g) {
+            $capacidadEfectiva = ($g->base_capacity ?? 15) + $g->justified_count;
+            return $g->enrollments_count > $capacidadEfectiva;
+        });
+
+        $theoriesCount = $course->theoryGroups->count();
+        $isSplittable = ($totalEnrolled >= 60 && $theoriesCount < 2);
+    @endphp
+
+    @if($gruposSobrecupo->count() > 0)
+        <div class="p-4 rounded-2xl border border-rose-200 bg-rose-50/90 text-rose-900 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center text-2xl flex-shrink-0">
+                    <i class="ph ph-warning-diamond"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold">Sobrecupo Crítico en Laboratorios</h4>
+                    <p class="text-xs text-rose-800 mt-0.5">
+                        Hay {{ $gruposSobrecupo->count() }} laboratorios que superan los límites incluso considerando alumnos con laptop y permisos docentes.
+                    </p>
+                </div>
+            </div>
+            @if($isSplittable)
+                <button @click="modalDivision = true" 
+                        class="px-4 py-2 bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold rounded-xl shadow-sm transition whitespace-nowrap">
+                    Reorganizar Teorías (T1 → T2)
+                </button>
+            @endif
+        </div>
+    @else
+        <div class="p-4 rounded-2xl border border-emerald-200 bg-emerald-50/90 text-emerald-900 shadow-sm flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-2xl flex-shrink-0">
+                    <i class="ph ph-check-circle"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold">Aforos Controlados y Balanceados</h4>
+                    <p class="text-xs text-emerald-800 mt-0.5">
+                        Los estudiantes cuentan con puesto asignado en equipo físico o modalidad laptop/autorización docente.
+                    </p>
+                </div>
+            </div>
+            @if($isSplittable)
+                <button @click="modalDivision = true" 
+                        class="px-4 py-2 bg-red-800 hover:bg-red-900 text-white text-xs font-bold rounded-xl shadow-sm transition whitespace-nowrap">
+                    Habilitar Teoría 2 (≥60 Alumnos)
+                </button>
+            @endif
+        </div>
+    @endif
+
+    <!-- Tarjetas de Métricas del Curso -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center text-2xl font-bold">
+                <i class="ph ph-users"></i>
+            </div>
+            <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Matriculados</p>
+                <h3 class="text-2xl font-extrabold text-slate-900">{{ $totalEnrolled }}</h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center text-2xl font-bold">
+                <i class="ph ph-laptop"></i>
+            </div>
+            <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Con Laptop</p>
+                <h3 class="text-2xl font-extrabold text-slate-900">{{ $totalLaptops }}</h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center text-2xl font-bold">
+                <i class="ph ph-certificate"></i>
+            </div>
+            <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Autorizados por Docente</p>
+                <h3 class="text-2xl font-extrabold text-slate-900">{{ $totalAuthorized }}</h3>
+            </div>
+        </div>
+
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center gap-4">
+            <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-2xl font-bold">
+                <i class="ph ph-arrows-clockwise"></i>
+            </div>
+            <div>
+                <p class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Alumnos Reasignados</p>
+                <h3 class="text-2xl font-extrabold text-slate-900">{{ $totalReassigned }}</h3>
+            </div>
+        </div>
+    </div>
+
+    <!-- TARJETAS DE AFORO POR GRUPO DE PRÁCTICA -->
+    <div>
+        <div class="flex justify-between items-center mb-4">
+            <h2 class="text-lg font-bold text-slate-900">Estado de Aforos por Laboratorio</h2>
+            <span class="text-xs text-slate-500 font-medium">Aforo Base vs Aforo Efectivo (con justificados)</span>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             @foreach($practiceGroups as $group)
                 @php
                     $currentCount = $group->enrollments_count;
-                    $maxCapacity = $group->base_capacity ?? 15; 
-                    $percentage = $maxCapacity > 0 ? min(round(($currentCount / $maxCapacity) * 100), 100) : 0;
-    
+                    $baseCap = $group->base_capacity ?? 15;
+                    $effectiveCap = $baseCap + $group->justified_count;
+                    $percentage = $effectiveCap > 0 ? min(round(($currentCount / $effectiveCap) * 100), 100) : 0;
+
                     $barColor = 'bg-blue-600';
-                    if ($percentage >= 100) {
-                        $barColor = 'bg-red-500';
-                    } elseif ($percentage >= 80) {
-                        $barColor = 'bg-yellow-500';
+                    if ($currentCount > $effectiveCap) {
+                        $barColor = 'bg-red-600';
+                    } elseif ($currentCount >= $baseCap) {
+                        $barColor = 'bg-amber-500';
                     }
-                @endphp 
-               <div class="bg-white rounded-lg shadow p-5 border border-gray-100 flex flex-col justify-between">
+                @endphp
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between hover:border-slate-300 transition">
                     <div>
                         <div class="flex justify-between items-center mb-2">
-                            <span class="font-bold text-gray-700 text-lg">{{ $group->code }}</span>
-                            <span class="text-xs font-semibold px-2 py-1 bg-indigo-50 text-indigo-700 rounded">
-                                {{ $group->theoryGroup->name ?? 'Teoría' }}
+                            <span class="font-black text-slate-900 text-lg">{{ $group->code }}</span>
+                            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ str_contains($group->theoryGroup->name ?? '', '2') ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-blue-50 text-blue-700 border border-blue-200' }}">
+                                {{ $group->theoryGroup->name ?? 'Teoría 1' }}
                             </span>
                         </div>
-                        <div class="flex justify-between text-sm text-gray-600 mb-1">
-                            <span>Matriculados / Aforo</span>
-                            <span class="font-bold {{ $currentCount > $maxCapacity ? 'text-red-600' : 'text-gray-800' }}">
-                                {{ $currentCount }} / {{ $maxCapacity }}
+
+                        <div class="flex justify-between text-xs text-slate-600 mb-1">
+                            <span>Matriculados:</span>
+                            <span class="font-extrabold {{ $currentCount > $effectiveCap ? 'text-red-600' : 'text-slate-800' }}">
+                                {{ $currentCount }} / {{ $baseCap }}
                             </span>
                         </div>
-                        <!-- Barra de progreso -->
-                        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-2">
-                            <div class="{{ $barColor }} h-2.5 rounded-full transition-all duration-300" style="width: {{ $percentage }}%"></div>
+
+                        <!-- Barra de Progreso -->
+                        <div class="w-full bg-slate-100 rounded-full h-2.5 mb-2 overflow-hidden">
+                            <div class="{{ $barColor }} h-2.5 rounded-full transition-all duration-500" style="width: {{ $percentage }}%"></div>
                         </div>
-                        <p class="text-xs text-gray-400 text-right mb-3">Aforo base: {{ $maxCapacity }} alumnos</p>
+
+                        <div class="space-y-1 text-[11px] text-slate-500 border-t border-slate-100 pt-2 mb-3">
+                            <div class="flex justify-between">
+                                <span>Laptops: <strong class="text-slate-700">{{ $group->laptop_count }}</strong></span>
+                                <span>Permisos: <strong class="text-slate-700">{{ $group->teacher_auth_count }}</strong></span>
+                            </div>
+                            <div class="text-right font-medium text-slate-400">
+                                Aforo efectivo: <span class="font-bold text-slate-700">{{ $effectiveCap }}</span>
+                            </div>
+                        </div>
                     </div>
+
                     @if(Route::has('exports.practice-groups.pdf'))
                         <a href="{{ route('exports.practice-groups.pdf', $group) }}" 
-                           class="w-full text-center py-1.5 px-2 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 rounded border border-red-200 transition inline-block">
-                            Descargar Acta PDF
+                           class="w-full text-center py-1.5 px-3 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 rounded-xl border border-red-200 transition flex items-center justify-center gap-1.5">
+                            <i class="ph ph-file-pdf text-base"></i>
+                            <span>Acta Oficial PDF</span>
                         </a>
                     @endif
                 </div>
@@ -71,152 +206,303 @@
     </div>
 
     <!-- BARRA DE FILTROS Y BÚSQUEDA -->
-    <div class="bg-white rounded-lg shadow p-6 mb-6">
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 p-6">
         <form method="GET" action="{{ route('courses.show', $course) }}" class="grid grid-cols-1 md:grid-cols-5 gap-4 items-end">
-            
-            <!-- Búsqueda por nombre o código -->
             <div>
-                <label for="search" class="block text-sm font-medium text-gray-700 mb-1">Estudiante</label>
+                <label for="search" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Estudiante</label>
                 <input type="text" name="search" id="search" value="{{ request('search') }}" 
-                    placeholder="Nombre o código..." 
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
+                       placeholder="Nombre o código..." 
+                       class="w-full text-xs rounded-xl border border-slate-200 p-2.5 focus:border-red-600 focus:ring-1 focus:ring-red-600">
             </div>
 
-            <!-- Filtro por Grupo de Práctica -->
             <div>
-                <label for="practice_group_id" class="block text-sm font-medium text-gray-700 mb-1">Grupo Práctica</label>
-                <select name="practice_group_id" id="practice_group_id" 
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
-                    <option value="">Todos</option>
-                    @foreach($practiceGroups as $group)
-                        <option value="{{ $group->id }}" {{ request('practice_group_id') == $group->id ? 'selected' : '' }}>
-                            {{ $group->code }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
-
-            <!-- Filtro por Grupo de Teoría -->
-            <div>
-                <label for="theory_group_id" class="block text-sm font-medium text-gray-700 mb-1">Grupo Teoría</label>
+                <label for="theory_group_id" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Teoría</label>
                 <select name="theory_group_id" id="theory_group_id" 
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
-                    <option value="">Todas</option>
-                    @foreach($theoryGroups as $tGroup)
-                        <option value="{{ $tGroup->id }}" {{ request('theory_group_id') == $tGroup->id ? 'selected' : '' }}>
-                            {{ $tGroup->name }}
+                        class="w-full text-xs rounded-xl border border-slate-200 p-2.5 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                    <option value="">Todas las teorías</option>
+                    @foreach($theoryGroups as $tg)
+                        <option value="{{ $tg->id }}" {{ request('theory_group_id') == $tg->id ? 'selected' : '' }}>
+                            {{ $tg->name }}
                         </option>
                     @endforeach
                 </select>
             </div>
 
-            <!-- Ordenamiento -->
             <div>
-                <label for="sort" class="block text-sm font-medium text-gray-700 mb-1">Ordenar por</label>
+                <label for="practice_group_id" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Grupo Práctica</label>
+                <select name="practice_group_id" id="practice_group_id" 
+                        class="w-full text-xs rounded-xl border border-slate-200 p-2.5 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                    <option value="">Todos los grupos</option>
+                    @foreach($practiceGroups as $pg)
+                        <option value="{{ $pg->id }}" {{ request('practice_group_id') == $pg->id ? 'selected' : '' }}>
+                            {{ $pg->code }} ({{ $pg->theoryGroup->name ?? 'Teoría' }})
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div>
+                <label for="sort" class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Orden</label>
                 <select name="sort" id="sort" 
-                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm border p-2">
-                    <option value="fifo" {{ request('sort') == 'fifo' ? 'selected' : '' }}>FIFO (Fecha)</option>
+                        class="w-full text-xs rounded-xl border border-slate-200 p-2.5 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                    <option value="fifo" {{ request('sort') == 'fifo' ? 'selected' : '' }}>FIFO (Inscripción)</option>
                     <option value="alphabetical_asc" {{ request('sort') == 'alphabetical_asc' ? 'selected' : '' }}>Alfabético (A-Z)</option>
                     <option value="alphabetical_desc" {{ request('sort') == 'alphabetical_desc' ? 'selected' : '' }}>Alfabético (Z-A)</option>
-                    <option value="code" {{ request('sort') == 'code' ? 'selected' : '' }}>Código Univ.</option>
+                    <option value="code" {{ request('sort') == 'code' ? 'selected' : '' }}>Código Universitario</option>
                 </select>
             </div>
 
-            <!-- Botones de Acción -->
-            <div class="flex space-x-2">
-                <button type="submit" class="flex-1 bg-indigo-600 text-white px-3 py-2 rounded-md hover:bg-indigo-700 text-sm font-medium transition shadow">
+            <div class="flex gap-2">
+                <button type="submit" class="flex-1 bg-red-800 hover:bg-red-900 text-white px-4 py-2.5 rounded-xl font-bold text-xs shadow-sm transition">
                     Filtrar
                 </button>
-                <a href="{{ route('courses.show', $course) }}" class="bg-gray-100 text-gray-700 px-3 py-2 rounded-md hover:bg-gray-200 text-sm font-medium transition border text-center">
+                <a href="{{ route('courses.show', $course) }}" class="bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2.5 rounded-xl font-semibold text-xs transition border border-slate-200">
                     Limpiar
                 </a>
             </div>
         </form>
     </div>
 
-    <!-- TABLA INTERACTIVA DE ESTUDIANTES MATRICULADOS -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
+    <!-- TABLA INTERACTIVA DE ESTUDIANTES -->
+    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+            <table class="min-w-full divide-y divide-slate-100">
+                <thead class="bg-slate-50">
                     <tr>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Código</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estudiante</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Grupo Práctica</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Teoría</th>
-                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Laptop</th>
-                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Permiso</th>
-                        <th class="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha Matrícula</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Código</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Estudiante</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Grupo Práctica</th>
+                        <th class="px-5 py-3.5 text-left text-xs font-bold text-slate-400 uppercase tracking-wider">Inscripción FIFO</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Laptop</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Permiso</th>
+                        <th class="px-5 py-3.5 text-center text-xs font-bold text-slate-400 uppercase tracking-wider">Estado</th>
+                        <th class="px-5 py-3.5 text-right text-xs font-bold text-slate-400 uppercase tracking-wider">Acciones</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @foreach($enrollments as $enrollment)
-                <tr class="hover:bg-gray-50">
-                    <!-- 1. Código del estudiante -->
-                    <td class="px-4 py-3 whitespace-nowrap text-sm font-mono font-medium text-gray-900">
-                        {{ $enrollment->user->code ?? 'N/A' }}
-                    </td>
+                <tbody class="divide-y divide-slate-100 bg-white">
+                    @forelse($enrollments as $e)
+                        <tr class="hover:bg-slate-50/80 transition-colors">
+                            <td class="px-5 py-3.5 font-mono text-xs font-bold text-slate-800">
+                                {{ $e->user->code ?? 'N/A' }}
+                            </td>
+                            <td class="px-5 py-3.5 text-sm font-semibold text-slate-900">
+                                {{ $e->user->name ?? 'Sin nombre' }}
+                            </td>
+                            <td class="px-5 py-3.5">
+                                @php
+                                    $tName = $e->practiceGroup->theoryGroup->name ?? 'Teoría 1';
+                                    $badgeType = str_contains($tName, '2') ? 't2' : 't1';
+                                @endphp
+                                <x-badge :type="$badgeType">
+                                    {{ $e->practiceGroup->code ?? '---' }} • {{ $tName }}
+                                </x-badge>
+                            </td>
+                            <td class="px-5 py-3.5 text-xs text-slate-500 font-mono">
+                                {{ $e->enrolled_at ? \Carbon\Carbon::parse($e->enrolled_at)->format('d/m/Y H:i:s') : 'N/A' }}
+                            </td>
+                            
+                            <!-- Toggle Switch Laptop con Confirmación SweetAlert2 y AJAX -->
+                            <td class="px-5 py-3.5 text-center">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" 
+                                           {{ $e->has_laptop ? 'checked' : '' }} 
+                                           onchange="solicitarConfirmacionToggle(this, {{ $e->id }}, 'has_laptop', '{{ addslashes($e->user->name) }}')"
+                                           class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-800"></div>
+                                </label>
+                            </td>
 
-                    <!-- Estudiante -->
-                    <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-800">
-                        {{ $enrollment->user->name ?? 'Sin nombre' }}
-                    </td>
+                            <!-- Toggle Switch Permiso Docente con Confirmación SweetAlert2 y AJAX -->
+                            <td class="px-5 py-3.5 text-center">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" 
+                                           {{ $e->teacher_authorized ? 'checked' : '' }} 
+                                           onchange="solicitarConfirmacionToggle(this, {{ $e->id }}, 'teacher_authorized', '{{ addslashes($e->user->name) }}')"
+                                           class="sr-only peer">
+                                    <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-red-800"></div>
+                                </label>
+                            </td>
 
-                    <!-- 2. Grupo de Práctica -->
-                    <td class="px-4 py-3 whitespace-nowrap text-sm">
-                        <span class="px-2.5 py-1 rounded text-xs font-semibold {{ $enrollment->practiceGroup ? 'bg-indigo-100 text-indigo-700' : 'bg-gray-100 text-gray-500' }}">
-                            {{ $enrollment->practiceGroup->code ?? 'Sin grupo' }}
-                        </span>
-                    </td>
+                            <!-- Estado -->
+                            <td class="px-5 py-3.5 text-center">
+                                <x-badge :type="$e->status === 'reasignado' ? 'reassigned' : 'success'">
+                                    {{ ucfirst($e->status) }}
+                                </x-badge>
+                            </td>
 
-                    <!-- Teoría -->
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-600">
-                        {{ $enrollment->practiceGroup->theoryGroup->name ?? 'Teoría 1' }}
-                    </td>
-
-                    <!-- Laptop -->
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
-                        @if($enrollment->has_laptop)
-                            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-100 text-blue-800">Sí</span>
-                        @else
-                            <span class="text-xs text-gray-400">No</span>
-                        @endif
-                    </td>
-
-                    <!-- Permiso Docente -->
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
-                        @if($enrollment->teacher_authorized)
-                            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-100 text-amber-800">Sí</span>
-                        @else
-                            <span class="text-xs text-gray-400">No</span>
-                        @endif
-                    </td>
-
-                    <!-- Estado -->
-                    <td class="px-4 py-3 whitespace-nowrap text-sm text-center">
-                        @if($enrollment->status === 'reasignado')
-                            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-purple-100 text-purple-800">Reasignado</span>
-                        @else
-                            <span class="px-2 py-0.5 text-xs font-semibold rounded-full bg-green-100 text-green-800">Original</span>
-                        @endif
-                    </td>
-
-                    <!-- Fecha Matrícula -->
-                    <td class="px-4 py-3 whitespace-nowrap text-xs text-gray-500 font-mono">
-                        {{ $enrollment->enrolled_at ? \Carbon\Carbon::parse($enrollment->enrolled_at)->format('d/m/Y H:i:s') : 'N/A' }}
-                    </td>
-                </tr>
-            @endforeach
+                            <!-- Botón Reasignar Manual -->
+                            <td class="px-5 py-3.5 text-right">
+                                <button type="button" 
+                                        @click="modalReasignar = true; selectedEnrollment = {{ $e->id }}; studentName = '{{ addslashes($e->user->name) }}'; currentGroup = '{{ $e->practiceGroup->code ?? '' }}'"
+                                        class="px-2.5 py-1 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-red-50 hover:text-red-700 rounded-lg border border-slate-200 transition">
+                                    Mover Grupo
+                                </button>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="8" class="px-5 py-10 text-center text-slate-400">
+                                No se encontraron estudiantes con los filtros seleccionados.
+                            </td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>
 
-        <!-- Paginación Limpia (->paginate(25)) -->
-        <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
-            {{ $enrollments->links() }}
+        @if($enrollments->hasPages())
+            <div class="px-5 py-3.5 bg-slate-50 border-t border-slate-100">
+                {{ $enrollments->links() }}
+            </div>
+        @endif
+    </div>
+
+    <!-- MODAL 1: Confirmación de Reorganización y División T1 -> T2 -->
+    <div x-show="modalDivision" 
+         x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-5" @click.away="modalDivision = false">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center text-2xl font-bold">
+                    <i class="ph ph-git-fork"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-slate-900">Reorganización y División de Teorías</h3>
+                    <p class="text-xs text-slate-500">Reglamento Académico Oficial UNS (≥ 60 alumnos)</p>
+                </div>
+            </div>
+
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 space-y-2">
+                <p><strong>Curso:</strong> {{ $course->name }} ({{ $course->code_course }})</p>
+                <p><strong>Matriculados actuales:</strong> {{ $totalEnrolled }} estudiantes.</p>
+                <p><strong>Regla de partición truncada:</strong> Se conservará (N - ⌊N/2⌋) grupos en Teoría 1 y se moverá ⌊N/2⌋ grupos a la nueva <strong>Teoría 2</strong> reiniciando correlativo en P2A.</p>
+                <p class="text-red-700 font-semibold">Todos los movimientos se registrarán en la bitácora inmutable con Batch ID para posibilidad de Rollback.</p>
+            </div>
+
+            <form method="POST" action="{{ route('courses.reallocate', $course) }}">
+                @csrf
+                <div class="flex gap-3 justify-end pt-2">
+                    <button type="button" @click="modalDivision = false" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm transition">
+                        Confirmar y Ejecutar División
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: Reasignación Manual Individual de Alumno -->
+    <div x-show="modalReasignar" 
+         x-cloak
+         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-5" @click.away="modalReasignar = false">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-2xl font-bold">
+                    <i class="ph ph-user-switch"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-black text-slate-900">Reasignar Grupo Manualmente</h3>
+                    <p class="text-xs text-slate-500">Atención de cruces de horario o peticiones</p>
+                </div>
+            </div>
+
+            <div class="text-xs text-slate-600 space-y-1">
+                <p>Estudiante: <strong class="text-slate-900" x-text="studentName"></strong></p>
+                <p>Grupo actual: <span class="px-2 py-0.5 rounded bg-slate-100 font-bold" x-text="currentGroup"></span></p>
+            </div>
+
+            <form :action="'/enrollments/' + selectedEnrollment + '/move-group'" method="POST" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nuevo Grupo de Práctica</label>
+                    <select name="new_practice_group_id" required class="w-full text-xs rounded-xl border border-slate-200 p-2.5 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                        @foreach($practiceGroups as $pg)
+                            <option value="{{ $pg->id }}">
+                                {{ $pg->code }} ({{ $pg->theoryGroup->name ?? 'Teoría' }}) - Horario: {{ $pg->schedule ?? 'Por definir' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div class="flex gap-3 justify-end pt-2">
+                    <button type="button" @click="modalReasignar = false" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm transition">
+                        Guardar Cambio
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    function solicitarConfirmacionToggle(checkbox, enrollmentId, field, studentName) {
+        const nuevoEstado = checkbox.checked;
+        const nombreCampo = field === 'has_laptop' ? 'Uso de Laptop' : 'Autorización Docente';
+        const accion = nuevoEstado ? 'habilitar' : 'deshabilitar';
+
+        Swal.fire({
+            title: `¿Confirmar cambio para ${studentName}?`,
+            text: `Se va a ${accion} el parámetro "${nombreCampo}".`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#800000',
+            cancelButtonColor: '#64748b',
+            confirmButtonText: 'Sí, guardar cambio',
+            cancelButtonText: 'Cancelar',
+            customClass: {
+                popup: 'rounded-3xl shadow-2xl',
+                confirmButton: 'rounded-xl font-bold px-4 py-2 text-xs',
+                cancelButton: 'rounded-xl font-medium px-4 py-2 text-xs'
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+
+                fetch(`/enrollments/${enrollmentId}/toggle`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': token,
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({ field: field, value: nuevoEstado })
+                })
+                .then(async response => {
+                    const data = await response.json();
+                    if (response.ok && data.success) {
+                        Swal.fire({
+                            title: '¡Guardado!',
+                            text: data.message,
+                            icon: 'success',
+                            timer: 1400,
+                            showConfirmButton: false,
+                            customClass: { popup: 'rounded-3xl' }
+                        });
+                    } else {
+                        throw new Error(data.message || 'Error al guardar');
+                    }
+                })
+                .catch(err => {
+                    checkbox.checked = !nuevoEstado;
+                    Swal.fire({
+                        title: 'Error',
+                        text: err.message || 'No se pudo actualizar el registro.',
+                        icon: 'error',
+                        confirmButtonColor: '#800000'
+                    });
+                });
+            } else {
+                checkbox.checked = !nuevoEstado;
+            }
+        });
+    }
+</script>
+@endpush
