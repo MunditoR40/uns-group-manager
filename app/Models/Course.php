@@ -21,4 +21,9 @@ class Course extends Model
     {
         return $this->hasMany(Enrollment::class);
     }
+
+    public function getCodeAttribute()
+    {
+        return $this->code_course;
+    }
 }
