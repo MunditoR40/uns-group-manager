@@ -1,5 +1,6 @@
 <?php
 
+<<<<<<< HEAD
 use App\Http\Controllers\AuditController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EnrollmentController;
@@ -17,3 +18,10 @@ Route::get('/auditoria', [AuditController::class, 'index'])->name('audit.index')
 
 Route::get('/export/excel', [ExportController::class, 'exportExcel'])->name('export.excel');
 Route::get('/export/pdf', [ExportController::class, 'exportPdf'])->name('export.pdf');
+=======
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+>>>>>>> 996efaeae98a775bc047ddd8c3355389b358cf69
