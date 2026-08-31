@@ -99,7 +99,7 @@ class AcademicScheduleSeeder extends Seeder
             $role = $isDelegate ? 'delegado' : 'estudiante';
 
             $students2025[$order] = User::create([
-                'name' => $fullName . ($isDelegate ? ' (DELEGADO IV CICLO)' : ''),
+                'name' => $fullName,
                 'code' => $code,
                 'email' => "{$code}@uns.edu.pe",
                 'password' => $defaultPassword,
@@ -172,7 +172,7 @@ class AcademicScheduleSeeder extends Seeder
             $role = $isDelegate ? 'delegado' : 'estudiante';
 
             $students2026[$order] = User::create([
-                'name' => $fullName . ($isDelegate ? ' (DELEGADO II CICLO)' : ''),
+                'name' => $fullName,
                 'code' => $code,
                 'email' => "{$code}@uns.edu.pe",
                 'password' => $defaultPassword,

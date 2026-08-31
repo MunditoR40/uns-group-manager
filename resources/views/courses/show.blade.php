@@ -327,7 +327,14 @@
                                 {{ $e->user->code ?? 'N/A' }}
                             </td>
                             <td class="px-5 py-3.5 text-sm font-semibold text-slate-900">
-                                {{ $e->user->name ?? 'Sin nombre' }}
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span>{{ $e->user->name ?? 'Sin nombre' }}</span>
+                                    @if(optional($e->user)->role === 'delegado')
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 shadow-sm" title="Delegado Oficial de Sección">
+                                            <i class="ph ph-crown-simple text-amber-700 font-bold text-xs"></i> Delegado
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-5 py-3.5">
                                 @php
@@ -371,13 +378,27 @@
                                 </x-badge>
                             </td>
 
-                            <!-- Botón Reasignar Manual -->
-                            <td class="px-5 py-3.5 text-right">
-                                <button type="button" 
-                                        @click="modalReasignar = true; selectedEnrollment = {{ $e->id }}; studentName = '{{ addslashes($e->user->name) }}'; currentGroup = '{{ $e->practiceGroup->code ?? '' }}'"
-                                        class="px-2.5 py-1 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-red-50 hover:text-red-700 rounded-lg border border-slate-200 transition">
-                                    Mover Grupo
-                                </button>
+                            <!-- Acciones del Delegado -->
+                            <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                                <div class="inline-flex items-center gap-1.5">
+                                    <button type="button" 
+                                            @click="modalReasignar = true; selectedEnrollment = {{ $e->id }}; studentName = '{{ addslashes($e->user->name) }}'; currentGroup = '{{ $e->practiceGroup->code ?? '' }}'"
+                                            title="Reasignar a otro grupo de práctica"
+                                            class="px-2.5 py-1 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-red-50 hover:text-red-700 rounded-lg border border-slate-200 transition">
+                                        Mover
+                                    </button>
+
+                                    @if($e->user)
+                                        <form method="POST" action="{{ route('students.toggle-delegate', $e->user->id) }}" class="inline">
+                                            @csrf
+                                            <button type="submit" 
+                                                    title="{{ $e->user->role === 'delegado' ? 'Quitar designación de delegado' : 'Designar como Delegado Oficial' }}"
+                                                    class="px-2 py-1 text-xs font-bold rounded-lg border transition {{ $e->user->role === 'delegado' ? 'bg-amber-100 text-amber-800 border-amber-300 hover:bg-amber-200' : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200' }}">
+                                                <i class="ph ph-crown-simple text-sm"></i>
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty

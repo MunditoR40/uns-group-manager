@@ -4,6 +4,7 @@ use App\Http\Controllers\AuditController;
 use App\Http\Controllers\CourseController;
 use App\Http\Controllers\EnrollmentController;
 use App\Http\Controllers\ExportController;
+use App\Http\Controllers\StudentController;
 use Illuminate\Support\Facades\Route;
 
 // Pantalla de inicio redirige al Catálogo de Cursos
@@ -16,9 +17,10 @@ Route::get('/courses', [CourseController::class, 'index'])->name('courses.index'
 Route::get('/courses/{course}', [CourseController::class, 'show'])->name('courses.show');
 Route::post('/courses/{course}/reallocate', [CourseController::class, 'reallocate'])->name('courses.reallocate');
 
-// Acciones sobre Matrículas de Estudiantes
+// Acciones sobre Matrículas y Estudiantes
 Route::patch('/enrollments/{enrollment}/toggle', [EnrollmentController::class, 'toggleStatus'])->name('enrollments.toggle');
 Route::post('/enrollments/{enrollment}/move-group', [EnrollmentController::class, 'moveGroup'])->name('enrollments.move-group');
+Route::post('/students/{user}/toggle-delegate', [StudentController::class, 'toggleDelegate'])->name('students.toggle-delegate');
 
 // Exportaciones Oficiales PDF y Excel
 Route::get('/exports/enrollments/excel', [ExportController::class, 'excel'])

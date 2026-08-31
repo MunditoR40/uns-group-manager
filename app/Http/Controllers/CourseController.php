@@ -66,20 +66,21 @@ class CourseController extends Controller
 
         // Ordenamiento
         $sort = $request->input('sort', 'fifo');
+        $studentsTable = (new \App\Models\User)->getTable();
         switch ($sort) {
             case 'alphabetical_asc':
-                $query->join('users', 'enrollments.user_id', '=', 'users.id')
-                      ->orderBy('users.name', 'asc')
+                $query->join($studentsTable, 'enrollments.user_id', '=', "{$studentsTable}.id")
+                      ->orderBy("{$studentsTable}.name", 'asc')
                       ->select('enrollments.*');
                 break;
             case 'alphabetical_desc':
-                $query->join('users', 'enrollments.user_id', '=', 'users.id')
-                      ->orderBy('users.name', 'desc')
+                $query->join($studentsTable, 'enrollments.user_id', '=', "{$studentsTable}.id")
+                      ->orderBy("{$studentsTable}.name", 'desc')
                       ->select('enrollments.*');
                 break;
             case 'code':
-                $query->join('users', 'enrollments.user_id', '=', 'users.id')
-                      ->orderBy('users.code', 'asc')
+                $query->join($studentsTable, 'enrollments.user_id', '=', "{$studentsTable}.id")
+                      ->orderBy("{$studentsTable}.code", 'asc')
                       ->select('enrollments.*');
                 break;
             case 'fifo':

@@ -173,4 +173,22 @@ class FrontendUiIntegrationTest extends TestCase
         $response->assertSee('P1A');
         $response->assertSee('Clic para quitar filtro');
     }
+
+    #[Test]
+    public function cambio_dinamico_de_rol_de_delegado_actualiza_correctamente()
+    {
+        $this->assertEquals('estudiante', $this->student->role);
+
+        $response = $this->post('/students/' . $this->student->id . '/toggle-delegate');
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->student->refresh();
+        $this->assertEquals('delegado', $this->student->role);
+        $this->assertTrue($this->student->isDelegate());
+
+        // Verificar que en la vista del curso se muestra el badge de Delegado
+        $showResponse = $this->get('/courses/' . $this->course->id);
+        $showResponse->assertSee('Delegado');
+    }
 }
