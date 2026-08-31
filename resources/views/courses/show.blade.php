@@ -440,85 +440,91 @@
     </div>
 
     <!-- MODAL 1: Confirmación de Reorganización y División T1 -> T2 -->
-    <div x-show="modalDivision" 
-         x-cloak
-         class="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-5" @click.away="modalDivision = false">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center text-2xl font-bold">
-                    <i class="ph ph-git-fork"></i>
+    <template x-teleport="body">
+        <div x-show="modalDivision" 
+             x-cloak
+             class="fixed inset-0 z-[9999] overflow-y-auto bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4"
+             style="display: none;">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-5" @click.away="modalDivision = false">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center text-2xl font-bold">
+                        <i class="ph ph-git-fork"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-slate-900">Reorganización y División de Teorías</h3>
+                        <p class="text-xs text-slate-500">Reglamento Académico Oficial UNS (≥ 60 alumnos)</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-lg font-black text-slate-900">Reorganización y División de Teorías</h3>
-                    <p class="text-xs text-slate-500">Reglamento Académico Oficial UNS (≥ 60 alumnos)</p>
-                </div>
-            </div>
 
-            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 space-y-2">
-                <p><strong>Curso:</strong> {{ $course->name }} ({{ $course->code_course }})</p>
-                <p><strong>Matriculados actuales:</strong> {{ $totalEnrolled }} estudiantes.</p>
-                <p><strong>Regla de partición truncada:</strong> Se conservará (N - ⌊N/2⌋) grupos en Teoría 1 y se moverá ⌊N/2⌋ grupos a la nueva <strong>Teoría 2</strong> reiniciando correlativo en P2A.</p>
-                <p class="text-red-700 font-semibold">Todos los movimientos se registrarán en la bitácora inmutable con Batch ID para posibilidad de Rollback.</p>
-            </div>
-
-            <form method="POST" action="{{ route('courses.reallocate', $course) }}">
-                @csrf
-                <div class="flex gap-3 justify-end pt-2">
-                    <button type="button" @click="modalDivision = false" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm transition">
-                        Confirmar y Ejecutar División
-                    </button>
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 text-xs text-slate-600 space-y-2">
+                    <p><strong>Curso:</strong> {{ $course->name }} ({{ $course->code_course }})</p>
+                    <p><strong>Matriculados actuales:</strong> {{ $totalEnrolled }} estudiantes.</p>
+                    <p><strong>Regla de partición truncada:</strong> Se conservará (N - ⌊N/2⌋) grupos en Teoría 1 y se moverá ⌊N/2⌋ grupos a la nueva <strong>Teoría 2</strong> reiniciando correlativo en P2A.</p>
+                    <p class="text-red-700 font-semibold">Todos los movimientos se registrarán en la bitácora inmutable con Batch ID para posibilidad de Rollback.</p>
                 </div>
-            </form>
+
+                <form method="POST" action="{{ route('courses.reallocate', $course) }}">
+                    @csrf
+                    <div class="flex gap-3 justify-end pt-2">
+                        <button type="button" @click="modalDivision = false" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm transition">
+                            Confirmar y Ejecutar División
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
-    </div>
+    </template>
 
     <!-- MODAL 2: Reasignación Manual Individual de Alumno -->
-    <div x-show="modalReasignar" 
-         x-cloak
-         class="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-5" @click.away="modalReasignar = false">
-            <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-2xl font-bold">
-                    <i class="ph ph-user-switch"></i>
+    <template x-teleport="body">
+        <div x-show="modalReasignar" 
+             x-cloak
+             class="fixed inset-0 z-[9999] overflow-y-auto bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4"
+             style="display: none;">
+            <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-5" @click.away="modalReasignar = false">
+                <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-2xl font-bold">
+                        <i class="ph ph-user-switch"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-black text-slate-900">Reasignar Grupo Manualmente</h3>
+                        <p class="text-xs text-slate-500">Atención de cruces de horario o peticiones</p>
+                    </div>
                 </div>
-                <div>
-                    <h3 class="text-lg font-black text-slate-900">Reasignar Grupo Manualmente</h3>
-                    <p class="text-xs text-slate-500">Atención de cruces de horario o peticiones</p>
+
+                <div class="text-xs text-slate-600 space-y-1">
+                    <p>Estudiante: <strong class="text-slate-900" x-text="studentName"></strong></p>
+                    <p>Grupo actual: <span class="px-2 py-0.5 rounded bg-slate-100 font-bold" x-text="currentGroup"></span></p>
                 </div>
+
+                <form :action="'/enrollments/' + selectedEnrollment + '/move-group'" method="POST" class="space-y-4">
+                    @csrf
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nuevo Grupo de Práctica</label>
+                        <select name="new_practice_group_id" required class="w-full text-xs rounded-xl border border-slate-200 p-2.5 focus:border-red-600 focus:ring-1 focus:ring-red-600">
+                            @foreach($practiceGroups as $pg)
+                                <option value="{{ $pg->id }}">
+                                    {{ $pg->code }} ({{ $pg->theoryGroup->name ?? 'Teoría' }}) - Horario: {{ $pg->schedule ?? 'Por definir' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex gap-3 justify-end pt-2">
+                        <button type="button" @click="modalReasignar = false" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm transition">
+                            Guardar Cambio
+                        </button>
+                    </div>
+                </form>
             </div>
-
-            <div class="text-xs text-slate-600 space-y-1">
-                <p>Estudiante: <strong class="text-slate-900" x-text="studentName"></strong></p>
-                <p>Grupo actual: <span class="px-2 py-0.5 rounded bg-slate-100 font-bold" x-text="currentGroup"></span></p>
-            </div>
-
-            <form :action="'/enrollments/' + selectedEnrollment + '/move-group'" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">Nuevo Grupo de Práctica</label>
-                    <select name="new_practice_group_id" required class="w-full text-xs rounded-xl border border-slate-200 p-2.5 focus:border-red-600 focus:ring-1 focus:ring-red-600">
-                        @foreach($practiceGroups as $pg)
-                            <option value="{{ $pg->id }}">
-                                {{ $pg->code }} ({{ $pg->theoryGroup->name ?? 'Teoría' }}) - Horario: {{ $pg->schedule ?? 'Por definir' }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-
-                <div class="flex gap-3 justify-end pt-2">
-                    <button type="button" @click="modalReasignar = false" class="px-4 py-2.5 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-100 transition">
-                        Cancelar
-                    </button>
-                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-red-800 hover:bg-red-900 text-white text-xs font-bold shadow-sm transition">
-                        Guardar Cambio
-                    </button>
-                </div>
-            </form>
         </div>
-    </div>
+    </template>
 
 </div>
 @endsection

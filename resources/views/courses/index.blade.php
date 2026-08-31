@@ -249,7 +249,8 @@
     </div>
 
     <!-- Modal Registrar / Editar Asignatura (CRUD de Jared) -->
-    <div x-show="openCourseModal" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md" style="display: none;" x-cloak>
+    <template x-teleport="body">
+        <div x-show="openCourseModal" class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-md" style="display: none;" x-cloak>
         <div @click.away="openCourseModal = false" class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-lg w-full p-6 sm:p-8 relative">
             <div class="flex justify-between items-start mb-6">
                 <div>
@@ -335,5 +336,6 @@
             </form>
         </div>
     </div>
+    </template>
 </div>
 @endsection

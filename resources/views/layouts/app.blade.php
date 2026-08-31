@@ -41,6 +41,13 @@
 
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        [x-cloak] { display: none !important; }
+        body:has(.fixed.inset-0:not([style*="display: none"])) nav {
+            z-index: 0 !important;
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans antialiased selection:bg-red-700 selection:text-white">
 
