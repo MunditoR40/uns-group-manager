@@ -163,8 +163,8 @@
 
                     $isSelected = request('practice_group_id') == $group->id;
                     $targetUrl = $isSelected 
-                        ? route('courses.show', array_merge(['course' => $course], request()->except(['practice_group_id', 'page']))) . '#tabla-estudiantes'
-                        : route('courses.show', array_merge(['course' => $course], request()->except('page'), ['practice_group_id' => $group->id])) . '#tabla-estudiantes';
+                        ? route('courses.show', array_merge(['course' => $course], request()->except(['practice_group_id', 'page'])))
+                        : route('courses.show', array_merge(['course' => $course], request()->except('page'), ['practice_group_id' => $group->id]));
                 @endphp
                 <div onclick="window.location.href='{{ $targetUrl }}'"
                      title="{{ $isSelected ? 'Clic para quitar filtro de ' . $group->code : 'Clic para filtrar estudiantes de ' . $group->code }}"
@@ -299,7 +299,7 @@
                         <i class="ph ph-funnel text-base text-red-700"></i>
                         <span>Filtrando por el grupo de práctica: <strong class="font-bold text-red-800">{{ $filteredGroup->code }}</strong> ({{ $filteredGroup->theoryGroup->name ?? 'Teoría' }})</span>
                     </div>
-                    <a href="{{ route('courses.show', array_merge(['course' => $course], request()->except(['practice_group_id', 'page']))) }}#tabla-estudiantes" 
+                    <a href="{{ route('courses.show', array_merge(['course' => $course], request()->except(['practice_group_id', 'page']))) }}" 
                        class="text-xs font-bold text-red-700 hover:text-red-900 flex items-center gap-1 hover:underline">
                         <i class="ph ph-x-circle text-sm"></i> Quitar filtro
                     </a>
@@ -545,5 +545,21 @@
             }
         });
     }
+
+    // Preservar la posición exacta del scroll al filtrar para evitar saltos de pantalla
+    window.addEventListener('beforeunload', () => {
+        sessionStorage.setItem('courses_scroll_pos_' + window.location.pathname, window.scrollY);
+    });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedScroll = sessionStorage.getItem('courses_scroll_pos_' + window.location.pathname);
+        if (savedScroll !== null) {
+            window.scrollTo({
+                top: parseInt(savedScroll, 10),
+                behavior: 'instant'
+            });
+            sessionStorage.removeItem('courses_scroll_pos_' + window.location.pathname);
+        }
+    });
 </script>
 @endpush
