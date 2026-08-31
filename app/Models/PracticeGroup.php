@@ -6,8 +6,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class PracticeGroup extends Model
 {
-    protected $fillable = ['theory_group_id', 'code', 'base_capacity', 'schedule'];
+    protected $fillable = ['theory_group_id', 'code', 'base_capacity', 'schedule', 'teacher_id', 'environment'];
 
+    public function teacher()
+    {
+        return $this->belongsTo(User::class, 'teacher_id');
+    }
+    
     public function theoryGroup()
     {
         return $this->belongsTo(TheoryGroup::class);
