@@ -8,7 +8,6 @@ use App\Http\Controllers\ExportController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\TeacherController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\StudentController;
 
 // Pantalla de inicio redirige al Catálogo de Cursos
 Route::get('/', function () {
