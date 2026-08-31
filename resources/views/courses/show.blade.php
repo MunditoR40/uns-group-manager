@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', $course->name)
 
@@ -160,11 +160,26 @@
                     } elseif ($currentCount >= $baseCap) {
                         $barColor = 'bg-amber-500';
                     }
+
+                    $isSelected = request('practice_group_id') == $group->id;
+                    $targetUrl = $isSelected 
+                        ? route('courses.show', array_merge(['course' => $course], request()->except(['practice_group_id', 'page']))) . '#tabla-estudiantes'
+                        : route('courses.show', array_merge(['course' => $course], request()->except('page'), ['practice_group_id' => $group->id])) . '#tabla-estudiantes';
                 @endphp
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col justify-between hover:border-slate-300 transition">
+                <div onclick="window.location.href='{{ $targetUrl }}'"
+                     title="{{ $isSelected ? 'Clic para quitar filtro de ' . $group->code : 'Clic para filtrar estudiantes de ' . $group->code }}"
+                     class="rounded-2xl p-5 flex flex-col justify-between cursor-pointer transition-all duration-200 group relative {{ $isSelected ? 'bg-red-50/40 border-2 border-red-800 ring-2 ring-red-800/30 shadow-md -translate-y-1' : 'bg-white border border-slate-200 shadow-sm hover:border-red-400 hover:shadow-lg hover:-translate-y-1' }}">
+                    
                     <div>
                         <div class="flex justify-between items-center mb-2">
-                            <span class="font-black text-slate-900 text-lg">{{ $group->code }}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="font-black text-slate-900 text-lg group-hover:text-red-800 transition">{{ $group->code }}</span>
+                                @if($isSelected)
+                                    <span class="text-[10px] font-extrabold bg-red-800 text-white px-2 py-0.5 rounded-full flex items-center gap-1 shadow-sm">
+                                        <i class="ph ph-funnel"></i> Activo
+                                    </span>
+                                @endif
+                            </div>
                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ str_contains($group->theoryGroup->name ?? '', '2') ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-blue-50 text-blue-700 border border-blue-200' }}">
                                 {{ $group->theoryGroup->name ?? 'Teoría 1' }}
                             </span>
@@ -193,13 +208,22 @@
                         </div>
                     </div>
 
-                    @if(Route::has('exports.practice-groups.pdf'))
-                        <a href="{{ route('exports.practice-groups.pdf', $group) }}" 
-                           class="w-full text-center py-1.5 px-3 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 rounded-xl border border-red-200 transition flex items-center justify-center gap-1.5">
-                            <i class="ph ph-file-pdf text-base"></i>
-                            <span>Acta Oficial PDF</span>
-                        </a>
-                    @endif
+                    <div class="space-y-2 pt-2 border-t border-slate-100">
+                        @if(Route::has('exports.practice-groups.pdf'))
+                            <a href="{{ route('exports.practice-groups.pdf', $group) }}" 
+                               onclick="event.stopPropagation();"
+                               title="Descargar Acta en PDF"
+                               class="w-full text-center py-1.5 px-3 text-xs font-bold text-red-700 bg-red-50 hover:bg-red-100 rounded-xl border border-red-200 transition flex items-center justify-center gap-1.5 shadow-sm">
+                                <i class="ph ph-file-pdf text-base"></i>
+                                <span>Acta Oficial PDF</span>
+                            </a>
+                        @endif
+
+                        <div class="text-[10px] font-semibold text-center {{ $isSelected ? 'text-red-800 font-bold' : 'text-slate-400 group-hover:text-red-700' }} transition flex items-center justify-center gap-1">
+                            <i class="ph {{ $isSelected ? 'ph-x-circle' : 'ph-funnel-simple' }}"></i>
+                            <span>{{ $isSelected ? 'Clic para quitar filtro' : 'Clic para filtrar grupo' }}</span>
+                        </div>
+                    </div>
                 </div>
             @endforeach
         </div>
@@ -264,7 +288,24 @@
     </div>
 
     <!-- TABLA INTERACTIVA DE ESTUDIANTES -->
-    <div class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+    <div id="tabla-estudiantes" class="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        @if(request('practice_group_id'))
+            @php
+                $filteredGroup = $practiceGroups->firstWhere('id', request('practice_group_id'));
+            @endphp
+            @if($filteredGroup)
+                <div class="px-6 py-3 bg-red-50/80 border-b border-red-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2 text-xs text-red-950 font-medium">
+                        <i class="ph ph-funnel text-base text-red-700"></i>
+                        <span>Filtrando por el grupo de práctica: <strong class="font-bold text-red-800">{{ $filteredGroup->code }}</strong> ({{ $filteredGroup->theoryGroup->name ?? 'Teoría' }})</span>
+                    </div>
+                    <a href="{{ route('courses.show', array_merge(['course' => $course], request()->except(['practice_group_id', 'page']))) }}#tabla-estudiantes" 
+                       class="text-xs font-bold text-red-700 hover:text-red-900 flex items-center gap-1 hover:underline">
+                        <i class="ph ph-x-circle text-sm"></i> Quitar filtro
+                    </a>
+                </div>
+            @endif
+        @endif
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-100">
                 <thead class="bg-slate-50">

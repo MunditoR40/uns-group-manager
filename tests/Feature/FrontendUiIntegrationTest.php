@@ -162,4 +162,15 @@ class FrontendUiIntegrationTest extends TestCase
             'name' => 'Teoría 2',
         ]);
     }
+
+    #[Test]
+    public function filtro_por_tarjeta_de_practica_funciona_y_resalta_tarjeta()
+    {
+        $response = $this->get('/courses/' . $this->course->id . '?practice_group_id=' . $this->group1->id);
+
+        $response->assertStatus(200);
+        $response->assertSee('Filtrando por el grupo de práctica:');
+        $response->assertSee('P1A');
+        $response->assertSee('Clic para quitar filtro');
+    }
 }
