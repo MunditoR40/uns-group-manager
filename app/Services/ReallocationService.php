@@ -242,4 +242,12 @@ class ReallocationService
 
         return $enrollment;
     }
+
+    /**
+     * Alias de splitTheoryGroups para compatibilidad
+     */
+    public function splitTheoryAndGroups(Course $course, User $executor): array
+    {
+        return $this->splitTheoryGroups($course, $executor);
+    }
 }

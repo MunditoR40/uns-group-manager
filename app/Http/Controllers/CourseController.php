@@ -151,7 +151,7 @@ class CourseController extends Controller
             ]);
         }
 
-        $result = $reallocationService->splitTheoryAndGroups($course, $executor);
+        $result = $reallocationService->splitTheoryGroups($course, $executor);
 
         if (!$result['success']) {
             return redirect()->back()->with('error', $result['message']);

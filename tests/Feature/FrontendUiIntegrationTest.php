@@ -130,4 +130,36 @@ class FrontendUiIntegrationTest extends TestCase
             'is_reverted' => false,
         ]);
     }
+
+    #[Test]
+    public function ruta_reallocate_ejecuta_split_theory_exitosamente()
+    {
+        // Crear 60 alumnos para cumplir la regla de >= 60
+        for ($i = 2; $i <= 60; $i++) {
+            $u = User::create([
+                'name' => "Estudiante {$i}",
+                'code' => sprintf('2025140%03d', $i),
+                'email' => "estudiante_{$i}@uns.edu.pe",
+                'password' => bcrypt('123'),
+                'role' => 'estudiante',
+            ]);
+            Enrollment::create([
+                'user_id' => $u->id,
+                'course_id' => $this->course->id,
+                'practice_group_id' => $this->group1->id,
+                'status' => 'original',
+                'enrolled_at' => now(),
+            ]);
+        }
+
+        $response = $this->post('/courses/' . $this->course->id . '/reallocate');
+
+        $response->assertRedirect();
+        $response->assertSessionHas('success');
+
+        $this->assertDatabaseHas('theory_groups', [
+            'course_id' => $this->course->id,
+            'name' => 'Teoría 2',
+        ]);
+    }
 }
