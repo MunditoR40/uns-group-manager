@@ -8,6 +8,10 @@ class Course extends Model
 {
     protected $fillable = ['code_course', 'name', 'semester'];
 
+    public function practiceGroups()
+    {
+        return $this->hasManyThrough(PracticeGroup::class, TheoryGroup::class);
+    }
     public function theoryGroups()
     {
         return $this->hasMany(TheoryGroup::class);
