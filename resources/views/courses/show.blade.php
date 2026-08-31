@@ -442,7 +442,7 @@
     <!-- MODAL 1: Confirmación de Reorganización y División T1 -> T2 -->
     <div x-show="modalDivision" 
          x-cloak
-         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+         class="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-lg w-full p-6 sm:p-8 space-y-5" @click.away="modalDivision = false">
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 rounded-2xl bg-red-100 text-red-700 flex items-center justify-center text-2xl font-bold">
@@ -478,7 +478,7 @@
     <!-- MODAL 2: Reasignación Manual Individual de Alumno -->
     <div x-show="modalReasignar" 
          x-cloak
-         class="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+         class="fixed inset-0 z-[100] overflow-y-auto bg-slate-900/60 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 sm:p-8 space-y-5" @click.away="modalReasignar = false">
             <div class="flex items-center gap-3">
                 <div class="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center text-2xl font-bold">

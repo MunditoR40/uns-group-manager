@@ -1,4 +1,4 @@
-<nav class="bg-white border-b border-slate-200 sticky top-0 z-50 backdrop-blur-md bg-white/95 shadow-sm">
+<nav class="bg-white border-b border-slate-200 sticky top-0 z-30 backdrop-blur-md bg-white/95 shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex justify-between h-16">
             <!-- Logo & Brand -->
