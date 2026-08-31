@@ -14,11 +14,17 @@ class CourseController extends Controller
     /**
      * Catálogo interactivo de Cursos (Dashboard inicial del sistema)
      */
-    public function index()
+    public function index(Request $request)
     {
-        $courses = Course::with(['theoryGroups.practiceGroups'])
-            ->withCount('enrollments')
-            ->get();
+        $query = Course::with(['theoryGroups.practiceGroups'])
+            ->withCount('enrollments');
+
+        if ($request->filled('cycle') && $request->cycle !== 'all') {
+            $query->where('cycle', $request->cycle);
+        }
+
+        $courses = $query->get();
+        $allCycles = Course::distinct()->whereNotNull('cycle')->pluck('cycle')->sort()->values();
 
         $stats = [
             'total_students' => Enrollment::distinct('user_id')->count('user_id'),
@@ -28,7 +34,7 @@ class CourseController extends Controller
             'total_reassigned' => Enrollment::where('status', 'reasignado')->count(),
         ];
 
-        return view('courses.index', compact('courses', 'stats'));
+        return view('courses.index', compact('courses', 'stats', 'allCycles'));
     }
 
     /**

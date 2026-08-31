@@ -191,4 +191,29 @@ class FrontendUiIntegrationTest extends TestCase
         $showResponse = $this->get('/courses/' . $this->course->id);
         $showResponse->assertSee('Delegado');
     }
+
+    #[Test]
+    public function filtro_de_cursos_por_ciclo_funciona_en_catalogo()
+    {
+        $this->course->update(['cycle' => 'II Ciclo']);
+
+        $cursoCuarto = Course::create([
+            'code_course' => '1411-0019',
+            'name' => 'PROGRAMACION I',
+            'semester' => '2026-02',
+            'cycle' => 'IV Ciclo',
+        ]);
+
+        // Filtrar por Segundo Ciclo
+        $resII = $this->get('/courses?cycle=' . urlencode('II Ciclo'));
+        $resII->assertStatus(200);
+        $resII->assertSee('Base de Datos I');
+        $resII->assertDontSee('PROGRAMACION I');
+
+        // Filtrar por Cuarto Ciclo
+        $resIV = $this->get('/courses?cycle=' . urlencode('IV Ciclo'));
+        $resIV->assertStatus(200);
+        $resIV->assertSee('PROGRAMACION I');
+        $resIV->assertDontSee('Base de Datos I');
+    }
 }

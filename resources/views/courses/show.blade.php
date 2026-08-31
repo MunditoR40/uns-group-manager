@@ -16,6 +16,7 @@
             <h1 class="text-2xl sm:text-3xl font-black text-slate-900 leading-tight">{{ $course->name }}</h1>
             <p class="text-xs sm:text-sm text-slate-500 mt-1">
                 Código: <span class="font-bold text-slate-700">{{ $course->code_course }}</span> • 
+                Ciclo: <span class="font-bold text-slate-700">{{ $course->cycle ?? 'II Ciclo' }}</span> • 
                 Semestre: <span class="font-bold text-slate-700">{{ $course->semester }}</span>
             </p>
         </div>

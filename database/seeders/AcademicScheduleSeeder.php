@@ -191,6 +191,7 @@ class AcademicScheduleSeeder extends Seeder
             'code_course' => '1411-0008',
             'name' => 'CALCULO INTEGRAL',
             'semester' => '2026-02',
+            'cycle' => 'II Ciclo',
         ]);
         $t1Calculo = TheoryGroup::create(['course_id' => $cursoCalculo->id, 'name' => 'Teoría 1']);
         
@@ -299,6 +300,7 @@ class AcademicScheduleSeeder extends Seeder
             'code_course' => '1411-0007',
             'name' => 'FISICA I',
             'semester' => '2026-02',
+            'cycle' => 'II Ciclo',
         ]);
         $t1Fisica = TheoryGroup::create(['course_id' => $cursoFisica->id, 'name' => 'Teoría 1']);
         $p1aFisica = PracticeGroup::create(['theory_group_id' => $t1Fisica->id, 'code' => 'P1A', 'base_capacity' => 15, 'schedule' => 'Viernes 07:00-09:00 | LAB FISICA']);
@@ -321,6 +323,7 @@ class AcademicScheduleSeeder extends Seeder
             'code_course' => '1411-0009',
             'name' => 'FUNDAMENTOS DE PROGRAMACION',
             'semester' => '2026-02',
+            'cycle' => 'II Ciclo',
         ]);
         $t1FundProg = TheoryGroup::create(['course_id' => $cursoFundProg->id, 'name' => 'Teoría 1']);
         $p1aFund = PracticeGroup::create(['theory_group_id' => $t1FundProg->id, 'code' => 'P1A', 'base_capacity' => 15, 'schedule' => 'Miércoles 07:00-09:00 | LAB SIST 01']);
@@ -358,6 +361,7 @@ class AcademicScheduleSeeder extends Seeder
             'code_course' => '1411-0019',
             'name' => 'PROGRAMACION I',
             'semester' => '2026-02',
+            'cycle' => 'IV Ciclo',
         ]);
         $t1Prog1 = TheoryGroup::create(['course_id' => $cursoProg1->id, 'name' => 'Teoría 1']);
         $p1aProg1 = PracticeGroup::create(['theory_group_id' => $t1Prog1->id, 'code' => 'P1A', 'base_capacity' => 15, 'schedule' => 'Lunes 07:00-11:00 | LAB SIST AD-02']);
@@ -380,6 +384,7 @@ class AcademicScheduleSeeder extends Seeder
             'code_course' => '1411-0022',
             'name' => 'BASE DE DATOS I',
             'semester' => '2026-02',
+            'cycle' => 'IV Ciclo',
         ]);
         $t1Bd1 = TheoryGroup::create(['course_id' => $cursoBd1->id, 'name' => 'Teoría 1']);
         $p1aBd1 = PracticeGroup::create(['theory_group_id' => $t1Bd1->id, 'code' => 'P1A', 'base_capacity' => 15, 'schedule' => 'Miércoles 07:00-09:00 | LAB SIST AD-03']);
@@ -402,6 +407,7 @@ class AcademicScheduleSeeder extends Seeder
             'code_course' => '1411-0023',
             'name' => 'INGENIERIA DE REQUISITOS',
             'semester' => '2026-02',
+            'cycle' => 'IV Ciclo',
         ]);
         $t1Req = TheoryGroup::create(['course_id' => $cursoReq->id, 'name' => 'Teoría 1']);
         $p1aReq = PracticeGroup::create(['theory_group_id' => $t1Req->id, 'code' => 'P1A', 'base_capacity' => 15, 'schedule' => 'Martes 11:00-13:00 | AULA 201']);

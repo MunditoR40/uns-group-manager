@@ -1,4 +1,4 @@
-﻿@extends('layouts.app')
+@extends('layouts.app')
 
 @section('title', 'Catálogo de Cursos')
 
@@ -63,34 +63,55 @@
         </div>
     </div>
 
-    <!-- Catálogo de Cursos Oficiales -->
+    <!-- Catálogo de Cursos Oficiales con Filtro de Ciclos -->
     <div>
-        <div class="flex justify-between items-center mb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
             <div>
                 <h2 class="text-xl font-bold text-slate-900">Asignaturas Registradas</h2>
-                <p class="text-xs text-slate-500">Selecciona un curso para gestionar los aforos de sus grupos de práctica.</p>
+                <p class="text-xs text-slate-500">Haz clic en cualquier asignatura para gestionar sus grupos de teoría y práctica.</p>
             </div>
-            <span class="text-xs font-semibold text-slate-500 bg-white border border-slate-200 px-3 py-1.5 rounded-xl shadow-sm">
-                {{ $courses->count() }} Asignaturas
-            </span>
+
+            <!-- Filtro de Ciclos Interactivo -->
+            <div class="flex items-center gap-1.5 p-1 bg-white border border-slate-200 rounded-2xl shadow-sm self-start sm:self-auto">
+                <a href="{{ route('courses.index', ['cycle' => 'all']) }}" 
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {{ (!request('cycle') || request('cycle') === 'all') ? 'bg-red-800 text-white shadow-sm' : 'text-slate-600 hover:text-red-800 hover:bg-slate-50' }}">
+                    <i class="ph ph-squares-four"></i>
+                    <span>Todos</span>
+                </a>
+                <a href="{{ route('courses.index', ['cycle' => 'II Ciclo']) }}" 
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {{ request('cycle') === 'II Ciclo' ? 'bg-red-800 text-white shadow-sm' : 'text-slate-600 hover:text-red-800 hover:bg-slate-50' }}">
+                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                    <span>Segundo Ciclo</span>
+                </a>
+                <a href="{{ route('courses.index', ['cycle' => 'IV Ciclo']) }}" 
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {{ request('cycle') === 'IV Ciclo' ? 'bg-red-800 text-white shadow-sm' : 'text-slate-600 hover:text-red-800 hover:bg-slate-50' }}">
+                    <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+                    <span>Cuarto Ciclo</span>
+                </a>
+            </div>
         </div>
 
+        <!-- Rejilla de Cursos Interactivos -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach($courses as $c)
+            @forelse($courses as $c)
                 @php
                     $theoriesCount = $c->theoryGroups->count();
                     $practicesCount = $c->practiceGroups->count();
                     $isSplittable = ($c->enrollments_count >= 60 && $theoriesCount < 2);
                     $isSplitted = ($theoriesCount >= 2);
+                    $isFourthCycle = ($c->cycle === 'IV Ciclo');
                 @endphp
-                <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all flex flex-col justify-between group">
+                <div onclick="window.location.href='{{ route('courses.show', $c) }}'"
+                     title="Haz clic para gestionar {{ $c->name }}"
+                     class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-xl hover:border-red-400 hover:-translate-y-1.5 transition-all duration-200 flex flex-col justify-between group cursor-pointer relative">
+                    
                     <div>
                         <div class="flex justify-between items-start mb-3">
                             <span class="px-2.5 py-1 text-xs font-bold font-mono rounded-lg bg-red-50 text-red-700 border border-red-200">
                                 {{ $c->code_course }}
                             </span>
-                            <span class="text-xs font-semibold text-slate-400">
-                                Ciclo {{ $c->semester }}
+                            <span class="text-xs font-bold px-2.5 py-0.5 rounded-full {{ $isFourthCycle ? 'bg-purple-50 text-purple-700 border border-purple-200' : 'bg-blue-50 text-blue-700 border border-blue-200' }}">
+                                {{ $c->cycle ?? 'II Ciclo' }}
                             </span>
                         </div>
 
@@ -131,13 +152,18 @@
                     </div>
 
                     <div class="mt-6 pt-4 border-t border-slate-100">
-                        <a href="{{ route('courses.show', $c) }}" class="w-full py-2.5 px-4 bg-red-800 hover:bg-red-900 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-2 group-hover:bg-red-700">
-                            <span>Gestionar y Reasignar</span>
-                            <i class="ph ph-arrow-right font-bold"></i>
-                        </a>
+                        <div class="w-full py-2.5 px-4 bg-red-800 group-hover:bg-red-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-2">
+                            <span>Gestionar Asignatura</span>
+                            <i class="ph ph-arrow-right font-bold group-hover:translate-x-1.5 transition-transform"></i>
+                        </div>
                     </div>
                 </div>
-            @endforeach
+            @empty
+                <div class="col-span-full bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400">
+                    <i class="ph ph-folder-open text-4xl mb-2 text-slate-300"></i>
+                    <p class="text-sm font-semibold">No se encontraron asignaturas para el ciclo seleccionado.</p>
+                </div>
+            @endforelse
         </div>
     </div>
 </div>
