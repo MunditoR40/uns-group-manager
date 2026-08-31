@@ -114,16 +114,22 @@
                         <i class="ph ph-squares-four"></i>
                         <span>Todos</span>
                     </a>
-                    <a href="{{ route('courses.index', ['cycle' => 'II Ciclo']) }}" 
-                       class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {{ request('cycle') === 'II Ciclo' ? 'bg-red-800 text-white shadow-sm' : 'text-slate-600 hover:text-red-800 hover:bg-slate-50' }}">
-                        <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                        <span>Segundo Ciclo</span>
-                    </a>
-                    <a href="{{ route('courses.index', ['cycle' => 'IV Ciclo']) }}" 
-                       class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {{ request('cycle') === 'IV Ciclo' ? 'bg-red-800 text-white shadow-sm' : 'text-slate-600 hover:text-red-800 hover:bg-slate-50' }}">
-                        <span class="w-2 h-2 rounded-full bg-purple-500"></span>
-                        <span>Cuarto Ciclo</span>
-                    </a>
+                    @foreach($allCycles as $cName)
+                        @php
+                            $colorDot = match(strtoupper($cName)) {
+                                'II CICLO' => 'bg-blue-500',
+                                'IV CICLO' => 'bg-purple-500',
+                                'VI CICLO' => 'bg-emerald-500',
+                                'VIII CICLO' => 'bg-amber-500',
+                                default => 'bg-rose-500'
+                            };
+                        @endphp
+                        <a href="{{ route('courses.index', ['cycle' => $cName]) }}" 
+                           class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 {{ request('cycle') === $cName ? 'bg-red-800 text-white shadow-sm' : 'text-slate-600 hover:text-red-800 hover:bg-slate-50' }}">
+                            <span class="w-2 h-2 rounded-full {{ $colorDot }}"></span>
+                            <span>{{ $cName }}</span>
+                        </a>
+                    @endforeach
                 </div>
 
                 <!-- Botón de Jared: Nueva Asignatura -->
