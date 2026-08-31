@@ -469,6 +469,12 @@
                                     </button>
 
                                     @if($e->user)
+                                        <a href="{{ route('students.edit', $e->user->id) }}" 
+                                           title="Editar datos del estudiante"
+                                           class="px-2 py-1 text-xs font-bold rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100 hover:text-red-700 transition">
+                                            <i class="ph ph-pencil-simple text-sm"></i>
+                                        </a>
+
                                         <form method="POST" action="{{ route('students.toggle-delegate', $e->user->id) }}" class="inline">
                                             @csrf
                                             <button type="submit" 

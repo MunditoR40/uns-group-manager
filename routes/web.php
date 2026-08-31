@@ -32,10 +32,15 @@ Route::post('/teachers', [TeacherController::class, 'store'])->name('teachers.st
 Route::put('/teachers/{teacher}', [TeacherController::class, 'update'])->name('teachers.update');
 Route::delete('/teachers/{teacher}', [TeacherController::class, 'destroy'])->name('teachers.destroy');
 
-// Acciones sobre Matrículas y Estudiantes
+// Gestión de Estudiantes (Revisado e integrado de Jared)
+Route::get('/students', [StudentController::class, 'index'])->name('students.index');
+Route::get('/students/{student}/edit', [StudentController::class, 'edit'])->name('students.edit');
+Route::put('/students/{student}', [StudentController::class, 'update'])->name('students.update');
+Route::post('/students/{user}/toggle-delegate', [StudentController::class, 'toggleDelegate'])->name('students.toggle-delegate');
+
+// Acciones sobre Matrículas y Grupos
 Route::patch('/enrollments/{enrollment}/toggle', [EnrollmentController::class, 'toggleStatus'])->name('enrollments.toggle');
 Route::post('/enrollments/{enrollment}/move-group', [EnrollmentController::class, 'moveGroup'])->name('enrollments.move-group');
-Route::post('/students/{user}/toggle-delegate', [StudentController::class, 'toggleDelegate'])->name('students.toggle-delegate');
 
 // Exportaciones Oficiales PDF y Excel
 Route::get('/exports/enrollments/excel', [ExportController::class, 'excel'])

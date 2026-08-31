@@ -22,6 +22,9 @@
                 <a href="{{ route('courses.index') }}" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-700 hover:bg-slate-50 rounded-lg transition flex items-center gap-1.5">
                     <i class="ph ph-squares-four text-lg"></i> Cursos
                 </a>
+                <a href="{{ route('students.index') }}" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-700 hover:bg-slate-50 rounded-lg transition flex items-center gap-1.5">
+                    <i class="ph ph-users text-lg"></i> Estudiantes
+                </a>
                 <a href="{{ route('teachers.index') }}" class="px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-700 hover:bg-slate-50 rounded-lg transition flex items-center gap-1.5">
                     <i class="ph ph-chalkboard-teacher text-lg"></i> Docentes
                 </a>
@@ -56,6 +59,9 @@
         </a>
         <a href="{{ route('courses.index') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-red-50 hover:text-red-700 transition">
             <i class="ph ph-squares-four text-lg"></i> Cursos
+        </a>
+        <a href="{{ route('students.index') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-red-50 hover:text-red-700 transition">
+            <i class="ph ph-users text-lg"></i> Estudiantes
         </a>
         <a href="{{ route('teachers.index') }}" class="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-red-50 hover:text-red-700 transition">
             <i class="ph ph-chalkboard-teacher text-lg"></i> Docentes
