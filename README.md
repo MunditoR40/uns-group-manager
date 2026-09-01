@@ -13,7 +13,8 @@
   <img src="https://img.shields.io/badge/Laravel-12.x-FF2D20?style=for-the-badge&logo=laravel&logoColor=white" alt="Laravel 12">
   <img src="https://img.shields.io/badge/PHP-8.2%2B-777BB4?style=for-the-badge&logo=php&logoColor=white" alt="PHP 8.2">
   <img src="https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
-  <img src="https://img.shields.io/badge/PHPUnit-100%25%20Passing-brightgreen?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Tests">
+  <img src="https://img.shields.io/badge/PHPUnit-40%2F40%20Passing%20(100%25)-brightgreen?style=for-the-badge&logo=checkmarx&logoColor=white" alt="Tests">
+  <img src="https://img.shields.io/badge/Chart.js-Analytics-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white" alt="Chart.js">
 </p>
 
 ---
@@ -23,7 +24,7 @@
 * **Institución:** Universidad Nacional del Santa (UNS) — Chimbote, Perú
 * **Centro:** Centro de Cómputo (CECOMP UNS)
 * **Curso:** Desarrollo Web con PHP y Laravel
-* **Docente a Cargo:** Ing. Borja Whiston
+* **Docente a Cargo:** Ing. Whiston Borja Reyna
 * **Tech Lead del Proyecto:** Angel Rojas
 
 ---
@@ -32,9 +33,46 @@
 
 Durante el proceso de matrícula oficial en la Universidad Nacional del Santa (UNS), los estudiantes se inscriben inicialmente en una única teoría (**Teoría 1**) y en distintos grupos de práctica (**P1A, P1B, P1C, P1D**, etc.).
 
-Posteriormente, debido a la saturación de alumnos o a la reprogramación de horarios de laboratorio, la universidad suele autorizar la apertura de una **Teoría 2** y reestructurar los grupos de práctica. Esta tarea recae tradicionalmente en el **Delegado del curso**, quien debe reorganizar a los estudiantes de forma transparente, equitativa y con trazabilidad ante las autoridades académicas y docentes.
+Posteriormente, debido a la saturación de alumnos ($N \ge 60$) o a la reprogramación de horarios de laboratorio, la universidad autoriza la apertura de una **Teoría 2** y la reestructuración de los grupos de práctica. Esta tarea recae tradicionalmente en el **Delegado del curso**, quien debe reorganizar a los estudiantes de forma transparente, equitativa y con trazabilidad ante las autoridades académicas y docentes.
 
-Este sistema web automatiza la reestructuración inicial y proporciona al delegado herramientas de control fino para gestionar casos particulares, cruces de horarios y la emisión de actas oficiales.
+Este sistema web automatiza la reestructuración inicial y proporciona al delegado herramientas analíticas y de control fino para gestionar casos particulares, cruces de horarios y la emisión de actas oficiales.
+
+---
+
+## 🚀 Principales Módulos y Funcionalidades Desarrolladas
+
+1. **Dashboard Analítico e Inteligencia Académica (`/dashboard`):**
+   * Gráficos interactivos construidos con **Chart.js**.
+   * Monitoreo de aforo y ocupación de laboratorios vs capacidad base (15 cupos).
+   * Índice de equipamiento tecnológico (estudiantes con laptop propia).
+   * Verificación de cumplimiento de carga lectiva docente (máx. 1 teoría por docente en un ciclo).
+   * Distribución de demanda por ciclos académicos (II, IV, VI y VIII Ciclo).
+   * Gráfico circular de promociones de ingreso por asignatura (**Promo Regular** vs. **Repitentes**).
+
+2. **Simulador Previo de División (*Dry Run / Modo Preview*):**
+   * Vista previa interactiva con partición matemática truncada $\lfloor N/2 \rfloor$ antes de alterar la base de datos.
+   * Acordeón desplegable con el padrón nominal de estudiantes que migrarían a Teoría 2.
+   * Confirmación atómica con registro de `batch_id` para posibilitar reversiones.
+
+3. **Módulo Padrón General de Estudiantes (`/students`):**
+   * Buscador en tiempo real por nombre, código de matrícula institucional (10 dígitos) o correo.
+   * Filtros dinámicos por roles (*Estudiantes Regulares*, *Delegados Oficiales*).
+   * Gestión y edición de datos del estudiante y asignación de delegados.
+
+4. **Gestión de Cursos y Plana Docente (`/courses`, `/teachers`):**
+   * Catálogo con filtros dinámicos por ciclo académico (II, IV, VI y VIII Ciclo).
+   * Regla institucional UNS: control de teorías simultáneas y asignación de carga de prácticas.
+
+5. **Auditoría Inmutable y Rollback (`/audit`):**
+   * Bitácora criptográfica con estados `previous_state` y `new_state` en JSON.
+   * Capacidad de revertir operaciones individuales o masivas (*Rollback* seguro).
+
+6. **Exportaciones Oficiales:**
+   * Padrón general y por curso en **Excel** (`.xlsx`) delimitado por teorías y turnos.
+   * Actas de asistencia para firma docente en formato **PDF** con membrete oficial UNS.
+
+7. **Generador de Datos Ficticios Anonimizados (`php artisan uns:seed-demo`):**
+   * 26 asignaturas de la malla, 20 docentes, 280 alumnos ficticios y 1,407 matrículas listas para exponer protegiendo datos personales (Ley N° 29733).
 
 ---
 
@@ -44,36 +82,30 @@ El proyecto fue desarrollado de forma colaborativa por un equipo de 8 integrante
 
 | N° | Integrante | Rol | Rama Git | Funcionalidad y Entregables |
 |:---:|:---|:---|:---|:---|
-| **1** | **Angel Rojas** | **Tech Lead & Algoritmo** | `feature/reallocation-service` | Diseño de la arquitectura de servicios, implementación del algoritmo `ReallocationService` (regla de $\ge 60$ alumnos, partición truncada $\lfloor N/2 \rfloor$, aforos de laboratorio), suite de pruebas en PHPUnit y coordinación de integración en Git. |
-| **2** | **Walter Flores** | **Líder de Base de Datos** | `feature/database-migrations` | Modelado relacional y migraciones de 6 tablas (`users`, `courses`, `theory_groups`, `practice_groups`, `enrollments`, `audit_logs`), llaves foráneas, índices de rendimiento y relaciones Eloquent. |
-| **3** | **Loeffer** | **Asistente de Datos** | *Dataset / Seeds* | ✅ Modelado y curación del dataset institucional en `AcademicScheduleSeeder.php` con códigos oficiales UNS de 10 dígitos, 90 estudiantes (promociones 2025 y 2026), 6 cursos oficiales del SIIGAA y 304 matrículas con casos de excedentes y cruces de horario. |
-| **4** | **Diego Gutierrez** | **Líder de FrontEnd & UI** | `feature/frontend-ui` | Diseño del layout institucional responsivo en Blade con Tailwind CSS y Alpine.js, modales de confirmación interactivos y toggles visuales para estados. |
-| **5** | **Joshua Norabuena** | **Panel del Delegado y Filtros** | `feature/delegate-panel-filters` | Implementación del controlador de matrículas, consultas optimizadas con *Eager Loading*, barra de filtros (búsqueda por código/nombre, grupo, orden FIFO/alfabético) y paginación. |
-| **6** | **Kelvin Carrillo** | **Auditoría y Rollback** | `feature/audit-and-rollback` | Módulo de auditoría inmutable (`AuditService` / `AuditController`), tracking de operaciones masivas mediante `batch_id` (UUID) y función de reversión (rollback) de cambios. |
-| **7** | **Yampier Salinas** | **Exportación Oficial** | `feature/pdf-excel-exports` | Generación y descarga de reportes oficiales de matrícula en Excel (`maatwebsite/excel`) y actas de asistencia para firma docente en formato PDF (`barryvdh/laravel-dompdf`). |
-| **8** | **Jared Rosales** | **Gestión de Cursos y Horarios** | `feature/courses-crud` | Módulo CRUD para asignaturas, semestres académicos, asignación de horarios de laboratorio, docentes responsables y ambientes. |
+| **1** | **Angel Rojas** | **Tech Lead & Algoritmo** | `feature/reallocation-service` | Arquitectura de servicios, algoritmo de partición truncada $\lfloor N/2 \rfloor$, Simulador Previo (*Dry Run*), Dashboard analítico con Chart.js, optimización de modales y suite de pruebas. |
+| **2** | **Walter Flores** | **Líder de Base de Datos** | `feature/database-migrations` | Modelado relacional, diseño de llaves foráneas, índices de rendimiento y migraciones Eloquent. |
+| **3** | **Loeffer** | **Asistente de Datos** | *Dataset / Seeds* | Modelado del dataset institucional con códigos oficiales UNS de 10 dígitos y distribución de turnos. |
+| **4** | **Diego Gutierrez** | **Líder de FrontEnd & UI** | `feature/frontend-ui` | Layout institucional responsivo en Blade con Tailwind CSS, Alpine.js, modales y toggles AJAX. |
+| **5** | **Joshua Norabuena** | **Panel del Delegado y Filtros** | `feature/delegate-panel-filters` | Filtros por código/nombre, turno, orden FIFO/alfabético, paginación y tarjetas de prácticas. |
+| **6** | **Kelvin Carrillo** | **Auditoría y Rollback** | `feature/audit-and-rollback` | Módulo de auditoría inmutable (`AuditService`), tracking con `batch_id` y reversión transaccional (*Rollback*). |
+| **7** | **Yampier Salinas** | **Exportación Oficial** | `feature/pdf-excel-exports` | Reportes en Excel (`maatwebsite/excel`) y actas oficiales en PDF (`barryvdh/laravel-dompdf`). |
+| **8** | **Jared Rosales** | **Módulo de Estudiantes** | `feature/students-crud` | Módulo para edición de datos del estudiante, roles institucionales y visualización de materias inscritas. |
 
 ---
 
-## ⚙️ Reglas de Negocio y Lógica del Sistema
+## ⚙️ Reglas de Negocio Institucionales (UNS)
 
 1. **Condición de Apertura de Teoría 2:**
-   * La división se habilita únicamente cuando la cantidad total de estudiantes matriculados en el curso es **mayor o igual a 60** ($N \ge 60$). Con menos de 60 alumnos, el curso se mantiene con una sola teoría.
+   * La división se activa únicamente cuando los matriculados son **mayor o igual a 60** ($N \ge 60$).
 2. **Partición Truncada de Prácticas:**
-   * Sea $N$ la cantidad de grupos de práctica iniciales de Teoría 1:
-     $$\text{Grupos para Teoría 2} = \lfloor N / 2 \rfloor$$
-     $$\text{Grupos que quedan en Teoría 1} = N - \lfloor N / 2 \rfloor$$
-   * **Ejemplo 4 prácticas:** 2 quedan en Teoría 1 (`P1A, P1B`) y 2 migran a Teoría 2 (`P2A, P2B`).
-   * **Ejemplo 5 prácticas:** 3 quedan en Teoría 1 (`P1A, P1B, P1C`) y 2 migran a Teoría 2 (`P2A, P2B`).
-   * El contador del abecedario se reinicia en `A` para Teoría 2.
+   $$\text{Grupos para Teoría 2} = \lfloor N / 2 \rfloor, \quad \text{Grupos para Teoría 1} = N - \lfloor N / 2 \rfloor$$
+   * El conteo del abecedario se reinicia en `A` para Teoría 2 (`P2A, P2B...`).
 3. **Capacidad y Aforo de Laboratorios:**
-   * Cada laboratorio de práctica tiene una capacidad base de **15 alumnos**.
-   * A cada teoría le corresponde a lo sumo $(\text{N° Prácticas}) \times 15$ alumnos.
-4. **Control Manual del Delegado (Casos Especiales):**
-   * El sistema automatiza la división estructural, dejando al delegado la potestad de reasignar a estudiantes individuales mediante el panel web para atender cruces de horarios, compromisos laborales o acuerdos mutuos.
-   * Gestión manual de flags: alumno con laptop (`has_laptop`) y autorización escrita del docente (`teacher_authorized`).
+   * Aforo base por laboratorio: **15 alumnos**.
+4. **Regla de Carga Lectiva Docente:**
+   * Un docente no puede dictar más de 1 teoría en un mismo ciclo, pero puede dictar múltiples prácticas.
 5. **Trazabilidad e Inmutabilidad:**
-   * Cada movimiento (automático o manual) genera un registro inmutable en `audit_logs` con el estado previo (`previous_state`) y el estado nuevo (`new_state`) en formato JSON.
+   * Cada movimiento (automático o manual) genera un registro inmutable en `audit_logs`.
 
 ---
 
@@ -81,14 +113,15 @@ El proyecto fue desarrollado de forma colaborativa por un equipo de 8 integrante
 
 * **Lenguaje:** PHP 8.2+
 * **Framework:** Laravel 12.x
-* **Base de Datos:** MySQL / MariaDB (y SQLite en memoria para tests)
-* **Frontend:** Laravel Blade, Tailwind CSS, Alpine.js
-* **Testing:** PHPUnit 11.x
-* **Exportaciones:** DomPDF y Laravel Excel
+* **Base de Datos:** MySQL 8.0+ / SQLite (en memoria para testing)
+* **Frontend:** Blade, Tailwind CSS, Alpine.js, Phosphor Icons
+* **Gráficos:** Chart.js
+* **Testing:** PHPUnit 11.x (40 tests, 208 aserciones, 100% aprobado)
+* **Exportaciones:** Laravel Excel y DomPDF
 
 ---
 
-## 🚀 Instalación y Despliegue Local
+## 🚀 Instalación y Despliegue Rápido
 
 ### 1. Clonar el repositorio:
 ```bash
@@ -96,46 +129,37 @@ git clone https://github.com/MunditoR40/uns-group-manager.git
 cd uns-group-manager
 ```
 
-### 2. Instalar dependencias de PHP:
+### 2. Instalar dependencias:
 ```bash
 composer install
 ```
 
-### 3. Configurar el archivo de entorno:
+### 3. Configurar `.env` y clave de aplicación:
 ```bash
 cp .env.example .env
 php artisan key:generate
 ```
 
-Asegúrate de configurar tus credenciales de base de datos en `.env`:
-```env
-DB_CONNECTION=mysql
-DB_HOST=127.0.0.1
-DB_PORT=3306
-DB_DATABASE=uns_groups_db
-DB_USERNAME=root
-DB_PASSWORD=
-SESSION_DRIVER=file
-```
-
-### 4. Ejecutar las migraciones:
+### 4. Migrar y poblar con el entorno Demo (Datos 100% seguros y anónimos):
 ```bash
-php artisan migrate
+php artisan migrate --force
+php artisan uns:seed-demo
 ```
 
-### 5. Ejecutar la suite de pruebas unitarias:
+### 5. Ejecutar las pruebas automatizadas:
 ```bash
 php artisan test
 ```
+> **Resultado:** `OK (40 tests, 208 assertions) - 100% Passing`
 
 ### 6. Iniciar el servidor local:
 ```bash
 php artisan serve
 ```
-El sistema estará disponible en `http://127.0.0.1:8000`.
+O simplemente haz doble clic en el archivo **`iniciar-demo.bat`**. Accede en tu navegador a: **`http://127.0.0.1:8000`**.
 
 ---
 
 ## 📄 Licencia
 
-Proyecto con fines académicos desarrollado para la comunidad universitaria de la **Universidad Nacional del Santa (UNS)**.
+Proyecto desarrollado con fines académicos para el Centro de Cómputo de la **Universidad Nacional del Santa (CECOMP UNS)**.
